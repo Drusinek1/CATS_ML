@@ -86,6 +86,7 @@ def drop(A):
     return A
 
 def avg_profs(X):
+
     width = X.shape[0]
     #channels first
     #target 2048 width
@@ -93,12 +94,12 @@ def avg_profs(X):
 
     split_X = np.array_split(X, split_constant, axis=0)
     tmp = []
-    print(split_X[0].shape)
     for group in split_X:
-        tmp_group = np.average(group, axis=1)
+        tmp_group = np.average(group, axis=0)
         tmp.append(tmp_group)
-    print(tmp[0].shape)
-    pdb.set_trace()
+    return np.array(tmp)
+
+
         
         
    
