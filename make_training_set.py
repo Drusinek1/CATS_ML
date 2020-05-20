@@ -31,26 +31,25 @@ bg_ed_bin = 480
 
 
 
-def crop(im, d):
-    
-  
+def crop(im, d): 
     #Channels first
-    print("Entered crop def")
     im = np.transpose(im, (1,2,0))
     cnt = 0
-    stoph = im.shape[1] // d
+    stopw = im.shape[2] // d
+    print("stopw = {}".format(stopw))
     #calculate p
-    p = im.shape[2] // stoph 
+    p = im.shape[2] // stopw
     
     
     tmp_lst = []
-    for i in range(0,stoph):
-        window = im[:,0+cnt:d+cnt,0+cnt:p+cnt]
+    for i in range(0,stopw):
+        window = im[:,0+cnt:cnt+d,0+cnt:cnt+p]
         tmp_lst.append(window)
         cnt += 1
       
     print("Cropped {} samples".format(cnt))
-    pdb.set_trace()
+    return np.asarray(tmp_lst)
+
 
 
    
@@ -122,14 +121,9 @@ def get_input(file):
 
     prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
     full = np.concatenate([X, prod], axis=2) 
-    full2 = crop(full, 10)
-    pdb.set_trace()
-    #full = cv2.resize(full, dsize=(512,1024), interpolation=cv2.INTER_AREA)
-    plot(full)
-    
-    plt.show()
- 
-    return full
+    cropped_full = crop(full, 25)
+
+    return cropped_full
 
 def get_targets(file):
 
@@ -151,18 +145,20 @@ nn = 1
 for file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, file))
     img = get_input(file)
-    print("BOLAY")
-    pdb.set_trace()
-    
+
     x_lst.append(img)
     nn+=1
- 
-#for i in x_lst:
-#    print(i.shape)  
-#np.save('questions', x_lst)
+
+"""
+TODO:
+
+"""
+for i in x_lst:
+    print(i.shape)  
+np.save('questions', x_lst)
 
 
-# directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
+#directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 
 # nn = 1
 
