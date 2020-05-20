@@ -13,7 +13,7 @@ import avg_data
 import lidar
 from matplotlib import pyplot as plt
 import imutils
-
+from PIL import Image
 
 
 
@@ -29,15 +29,41 @@ bg_st_bin = 400
 bg_ed_bin = 480
 
 
-lst = []
 
-def window(X, shape):
-    pdb.set_trace()
-    X = np.arange(10000).reshape((100,2,50))
-    X = np.transpose(X,(0,2,1))
-    X = X.reshape(-1,10,5,2)
-    return None
+
+def crop(im, d):
     
+  
+    #Channels first
+    print("Entered crop def")
+    im = np.transpose(im, (1,2,0))
+    cnt = 0
+    stoph = im.shape[1] // d
+    #calculate p
+    p = im.shape[2] // stoph 
+    
+    
+    tmp_lst = []
+    for i in range(0,stoph):
+        window = im[:,0+cnt:d+cnt,0+cnt:p+cnt]
+        tmp_lst.append(window)
+        cnt += 1
+      
+    print("Cropped {} samples".format(cnt))
+    pdb.set_trace()
+
+
+   
+
+        
+
+def plot(X):
+    plt.imshow(X[0,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
+    plt.show()
+    plt.imshow(X[1,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
+    plt.show()
+    
+    return None
 
 def remove_background_radiation(img):
 
@@ -76,15 +102,16 @@ def all_idx(idx, axis):
     return tuple(grid)
 
 
-   
+
 def get_input(file):
     X = read_routines.read_in_cats_l0_data(file, nchans, nbins)['chan'][:,-2:,:]
     X = remove_background_radiation(X)
-    #X = np.transpose(X, (1,2,0))
-   
+ 
+
     X = avg_data.drop(X)
 
     X = avg_data.avg_profs(X)
+
 
     """
     Adding extra channel
@@ -95,11 +122,13 @@ def get_input(file):
 
     prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
     full = np.concatenate([X, prod], axis=2) 
-
-    full = cv2.resize(full, dsize=(1024,512), interpolation=cv2.INTER_CUBIC)
-
-    plt.imshow(X[:,:,0], aspect='auto', cmap=lidar.get_a_color_map())
+    full2 = crop(full, 10)
+    pdb.set_trace()
+    #full = cv2.resize(full, dsize=(512,1024), interpolation=cv2.INTER_AREA)
+    plot(full)
+    
     plt.show()
+ 
     return full
 
 def get_targets(file):
@@ -107,8 +136,8 @@ def get_targets(file):
     hdf5 = h5py.File(file, 'r')
     target = np.asarray(hdf5['profile/Feature_Type_Fore_FOV'])
     #Resize Image
-
-    target_r = cv2.resize(target, dsize=(1024,512), interpolation=cv2.INTER_CUBIC)
+    
+    target_r = cv2.resize(target, dsize=(1024,512), interpolation=cv2.INTER_AREA)
     target_r[target_r != 0] = 1
     #target_one_hot = onehot(target_r)
     return target_r
@@ -124,7 +153,7 @@ for file in glob.glob('{}/*.dat'.format(directory)):
     img = get_input(file)
     print("BOLAY")
     pdb.set_trace()
-    img = window(img)   
+    
     x_lst.append(img)
     nn+=1
  
