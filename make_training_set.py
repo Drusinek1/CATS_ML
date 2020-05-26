@@ -50,8 +50,27 @@ def crop(im, d):
     print("Cropped {} samples".format(cnt))
     return np.asarray(tmp_lst)
 
+def merge(lst, row_size):
+    
+    lst = np.asarray(lst)
+    lst = lst.reshape() # Some shape
+    
+    n_lst = np.concatenate([lst])
+    """
+    Parameters
+    ----------
+    lst : list(ndarrays)
+    
+    Returns
+    -------
+    ndarray
+    """
+    img = lst[0]
+    idx = lst[0].shape[0] #width of full image
+    for row in range(0,img.shape[1])
+        np.concatenate(lst[:)
 
-
+            
    
 
         
@@ -149,16 +168,13 @@ for file in glob.glob('{}/*.dat'.format(directory)):
     x_lst.append(img)
     nn+=1
 
-"""
-TODO:
 
-"""
 for i in x_lst:
-    print(i.shape)  
+    print(i.shape) 
+
 np.save('questions', x_lst)
 
-
-#directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
+blah = np.load("questions.npy", allow_pickle=True)
 
 # nn = 1
 

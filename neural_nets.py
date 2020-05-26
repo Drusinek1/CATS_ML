@@ -9,17 +9,7 @@ import numpy as np
 import pdb
 
 """
-This function will initialize a unet model
-input: 
-    img: input image 
-    @type: 3D ndarray
-    num_classes: number of classes in input
-    @type: int
-    num_level: number of levels in UNet
-    @type: int
-    num_layers: number of convolutional layers at each level
-    @type: int
-    kernal_size: size of kernal
+Contains CNN architecture classes
     @type: list(int)
     
 """
