@@ -73,7 +73,7 @@ def drop_flagged_profiles(A):
 
     
 def avg_profs(X):
-<<<<<<< HEAD
+
     """
     This function averages together every 14 profiles of 
     X and returns the resulting ndarray
@@ -90,10 +90,10 @@ def avg_profs(X):
 
     """
 
-=======
+
 
     width = X.shape[0]
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
     #channels first
     X = np.transpose(X, (0,2,1))
 
@@ -105,7 +105,7 @@ def avg_profs(X):
     
     #split into chunks of 14
     split_X = np.array_split(X, split_constant, axis=0)
-<<<<<<< HEAD
+
     holder = []
     
     #Average together each chunk and append onto holder
@@ -120,17 +120,12 @@ def avg_profs(X):
     
 
 
-
-=======
     tmp = []
     for group in split_X:
         tmp_group = np.average(group, axis=0)
         tmp.append(tmp_group)
     return np.array(tmp)
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
 
-
-        
         
    
 

@@ -1,6 +1,5 @@
   
 # -*- coding: utf-8 -*-
-<<<<<<< HEAD
 
 """
 Created on Mon Apr  6 08:35:13 2020
@@ -8,12 +7,12 @@ Created on Mon Apr  6 08:35:13 2020
 
 This code imports pre-made training and testing data,and runs it through a
 binary classification convolutional neural network.
-=======
-"""
+
+
 Created on Mon Apr  6 08:35:13 2020
 @author: drusi
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
 """
+
 from datetime import datetime
 import numpy as np
 import neural_nets
@@ -25,7 +24,6 @@ import lidar
 import initializations
 import cv2
 
-<<<<<<< HEAD
 
 def plot(X,dims):
     """
@@ -39,7 +37,7 @@ def plot(X,dims):
     
     Returns
     -------
-    None.
+    None
 
     """
     if dims == 3:
@@ -73,18 +71,17 @@ start = datetime.now()
 
 # #loading .npy files created by make_training_set.py
 
-=======
+
 def plot(arr):
     plt.imshow(arr,)
     return None
 
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
 start = datetime.now()
 
 """
 Formatting Input Training Data
 """
-<<<<<<< HEAD
 
 
 path = r"C:/Users/drusi/OneDrive/Desktop/CPL/CATS"
@@ -105,7 +102,7 @@ Xt = np.load('test_questions.npy')[:,:,:,:]
 Yt = np.load('test_answers.npy')
 
 #remove extra 1 dimension
-=======
+
 path = r"C:/Users/drusi/OneDrive/Desktop/CPL/CATS"
 
 #loading .npy files created by make_training_set.py
@@ -118,12 +115,12 @@ Xt = np.load('test_questions.npy', allow_pickle=True)[:,:,:,:]
 
 
 Yt = np.load('test_answers.npy', allow_pickle=True)
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
 Yt = np.squeeze(Yt)
 
 
 
-<<<<<<< HEAD
+
 
 #UNet will expect this input shape for all training data
 model_shape = (1024,512,3)
@@ -164,7 +161,7 @@ TN = np.count_nonzero((pred - 1) * (Yt - 1))
 FP = np.count_nonzero(pred * (Yt - 1))
 
 # #False Negatives
-=======
+
 #UNet will expect this input shape for all training data
 model_shape = (512,1024,3)
 
@@ -192,7 +189,7 @@ TN = np.count_nonzero((pred - 1) * (Yt - 1))
 FP = np.count_nonzero(pred * (Yt - 1))
 
 #False Negatives
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
 FN = np.count_nonzero((pred - 1) * Yt) 
 
 precision = TP / (TP + FP)
@@ -201,7 +198,7 @@ f1 = 2 * precision * recall / (precision + recall)
 
 print("Recall: {}\nPrecision:{}\nF1_Score:{}".format(recall,precision,f1))
 
-<<<<<<< HEAD
+
 
 plt.figure()
 training_loss = history.history['loss']
@@ -224,9 +221,9 @@ time = datetime.now() - start
 print(time)
 
 pred = cv2.resize(pred, dsize=(512,2048), interpolation=cv2.INTER_CUBIC)
-=======
+
 #pred = cv2.resize(pred, dsize=(512,2048), interpolation=cv2.INTER_CUBIC)
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
 
 plt.figure()
 training_loss = history.history['loss']
@@ -249,14 +246,12 @@ fig, ax = plt.subplots()
 ax.imshow(pred, aspect='auto')
 
 
-<<<<<<< HEAD
-time = datetime.now() - start
-
-print(time)
-
-=======
 
 time = datetime.now() - start
 
 print(time)
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
+
+time = datetime.now() - start
+
+print(time)

@@ -12,11 +12,8 @@ import pdb
 import avg_data
 import lidar
 from matplotlib import pyplot as plt
-<<<<<<< HEAD
 
-=======
-import imutils
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
 from PIL import Image
 
 
@@ -33,15 +30,18 @@ bg_st_bin = 400
 bg_ed_bin = 480
 
 
-<<<<<<< HEAD
 def crop(img, windowsize_r, windowsize_c):
     """
     This function splits one image into a list of several small images
     
     Parameters
     ----------
-    a : ndarray
+    img : ndarray
         image to be split
+    windowsize_r : int
+    windowsize_c : int
+    desired sized of each image window
+        
 
     Returns
     -------
@@ -67,55 +67,12 @@ def plot(X):
     plot(X) will result in an error. Use plot(X[sample_number]) sample number starts
     at zero
     """
-=======
 
 
-def crop(im, d): 
-    #Channels first
-    im = np.transpose(im, (1,2,0))
-    cnt = 0
-    stopw = im.shape[2] // d
-    print("stopw = {}".format(stopw))
-    #calculate p
-    p = im.shape[2] // stopw
-    
-    
-    tmp_lst = []
-    for i in range(0,stopw):
-        window = im[:,0+cnt:cnt+d,0+cnt:cnt+p]
-        tmp_lst.append(window)
-        cnt += 1
-      
-    print("Cropped {} samples".format(cnt))
-    return np.asarray(tmp_lst)
-
-def merge(lst, row_size):
-    
-    lst = np.asarray(lst)
-    lst = lst.reshape() # Some shape
-    
-    n_lst = np.concatenate([lst])
-    """
-    Parameters
-    ----------
-    lst : list(ndarrays)
-    
-    Returns
-    -------
-    ndarray
-    """
-    img = lst[0]
-    idx = lst[0].shape[0] #width of full image
-    for row in range(0,img.shape[1])
-        np.concatenate(lst[:)
-
-            
-   
 
         
 
 def plot(X):
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
     plt.imshow(X[0,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
     plt.show()
     plt.imshow(X[1,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
@@ -148,7 +105,7 @@ def remove_background_radiation(img):
 
 # https://stackoverflow.com/questions/36960320/convert-a-2d-matrix-to-a-3d-one-hot-matrix-numpy @Divakar
 def onehot(a):
-<<<<<<< HEAD
+
     """
     This function one hot codes an an array with N classifcation categories
 
@@ -163,68 +120,21 @@ def onehot(a):
         One hot encoded array.
 
     """
-=======
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
     ncols = a.max()+1
     out = np.zeros(a.shape + (ncols,), dtype=int)
     out[all_idx(a, axis=2)] = 1
     return out
 
-<<<<<<< HEAD
-=======
+
+
 # https://stackoverflow.com/a/46103129/ @Divakar
 def all_idx(idx, axis):
     grid = np.ogrid[tuple(map(slice, idx.shape))]
     grid.insert(axis, idx)
     return tuple(grid)
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
 
 
 
-def get_input(file):
-<<<<<<< HEAD
-    """
-    This function recieves a .dat L0 file and extracts an 
-    ndarray of photon counts to use for training
-
-    Parameters
-    ----------
-    file : .dat
-        an L0 file
-
-    Returns
-    -------
-    out : ndarray
-        Photon counts
-    """
-    
-    #import the raw photon counts
-    X = read_routines.read_in_cats_l0_data(file, nchans, nbins)['chan'][:,-2:,:]
-    X = remove_background_radiation(X)
-     #drop bad profiles 
-    X = avg_data.drop_flagged_profiles(X)
-    X = np.transpose(X, (0,2,1))
-
-
-    #Average together every 14 profiles
-    X = avg_data.avg_profs(X)  
-    X = np.transpose(X,(0,2,1))
-
-    #Calculate a third artificial channel
-    chan1 = X[:,:,0]
-    chan2 = X[:,:,1]
-    
-    #calculate product of chan1 and chan2
-    prod = np.array([chan1 * chan2])
-    prod = np.transpose(prod, (1,2,0))
-   
-    #Combine 3rd channel with original data
-    X = np.concatenate([X,prod], axis=2)
-
-   
-    cropped = crop(X,10,10) #arbitrary split sizes for now
-
-    return cropped
 
 def get_targets(file):
     """
@@ -267,12 +177,13 @@ x_lst = []
 nn = 1
 
 #Format each dat file in directory with get_input and append onto x_lst
-=======
+
+def get_input(X):
     X = read_routines.read_in_cats_l0_data(file, nchans, nbins)['chan'][:,-2:,:]
     X = remove_background_radiation(X)
  
 
-    X = avg_data.drop(X)
+    X = avg_data.drop_flagged_profiles(X)
 
     X = avg_data.avg_profs(X)
 
@@ -286,7 +197,7 @@ nn = 1
 
     prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
     full = np.concatenate([X, prod], axis=2) 
-    cropped_full = crop(full, 25)
+    cropped_full = crop(full,10,10)
 
     return cropped_full
 
@@ -307,7 +218,7 @@ directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 
 x_lst = []
 nn = 1
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
+
 for file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, file))
     img = get_input(file)
@@ -315,8 +226,6 @@ for file in glob.glob('{}/*.dat'.format(directory)):
     x_lst.append(img)
     nn+=1
 
-
-<<<<<<< HEAD
 
 np.save('questions', x_lst)
 
@@ -361,9 +270,7 @@ for file in glob.glob('{}/*.hdf5'.format(directory)):
     nn+=1
     
 np.save('test_answers', t_lst)
-=======
-for i in x_lst:
-    print(i.shape) 
+
 
 np.save('questions', x_lst)
 
@@ -407,7 +314,6 @@ blah = np.load("questions.npy", allow_pickle=True)
 #     nn+=1
     
 # np.save('test_answers', t_lst)
->>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
 
 
 
