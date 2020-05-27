@@ -52,23 +52,55 @@ def add_padding(A, target_width=2048):
     pdb.set_trace()
     
     
-def drop(A):
-    for prof in A:
-        if A[0][0][0] == 2**14:
-            A = np.delete(A, 0, 0)
+def drop(raw_l0_array):
+    """
+
+    Parameters
+    ----------
+    A : ndarray
+        numpy array of raw data.
+    Returns
+    -------
+    A : ndarray
+        data with flagged profiles removed
+    """
+    # Function updated on 5/27/2020 by Andrew Kupchock to change logic for appropriate removal of profiles
+    print('Maximum value before is ', raw_l0_array.max())
+    counter = 0
+    for prof in raw_l0_array:
+        if prof.max() == 2 ** 14:
+            raw_l0_array = np.delete(raw_l0_array, counter, axis=0)
+        else:
+            counter += 1
+    print('Maximum value after is ', raw_l0_array.max())
+    print('Drop Counter: ', counter, ' shape of remaining array:', raw_l0_array.shape)
+
+    # if A[0][0][0] == 2**14:
+    #     A = np.delete(A, 0, 0)
     # A = 
     # tmp = np.copy(A)
     # tmp = np.delete(tmp, idxs, axis=2)
-    return A
+    return raw_l0_array
 
 
 def avg_profs(X):
-
+    """
+    This function averages together every 14 profiles of
+    X and returns the resulting ndarray
+    Parameters
+    ----------
+    X : ndarray
+        Photon count array.
+    Returns
+    -------
+    combined : ndarray
+        ndarray with every 14 profiles averages together.
+    """
     width = X.shape[0]
     # channels first
     # target 2048 width
     split_constant = width // 14
-
+    print('Dropping ', np.mod(width, 14), ' records when taking the average of 14')
     split_X = np.array_split(X, split_constant, axis=0)
     tmp = []
     for group in split_X:
