@@ -9,6 +9,7 @@ import numpy as np
 import pdb
 
 """
+<<<<<<< HEAD
 This function will initialize a unet model
 input: 
     img: input image 
@@ -20,6 +21,9 @@ input:
     num_layers: number of convolutional layers at each level
     @type: int
     kernal_size: size of kernal
+=======
+Contains CNN architecture classes
+>>>>>>> master
     @type: list(int)
     
 """

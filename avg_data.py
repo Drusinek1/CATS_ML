@@ -3,6 +3,9 @@
 Created on Tue May 12 12:10:46 2020
 
 @author: drusinek
+
+
+This script contains several functions for manipulating L0 CATS data
 """
 import read_routines
 import numpy as np
@@ -48,32 +51,72 @@ def remove_background_radiation(img):
 
 
 
-def drop(A):
+def drop_flagged_profiles(A):
+    """
+    
+    Parameters
+    ----------
+    A : ndarray
+        numpy array of raw data.
+
+    Returns
+    -------
+    A : ndarray
+        data with flagged profiles removed
+
+    """
     for prof in A:
         if A[0][0][0] == 2**14:
             A = np.delete(A,0,0)
-    # A = 
-    # tmp = np.copy(A)
-    # tmp = np.delete(tmp,idxs,axis=2) 
+
     return A
 
     
 def avg_profs(X):
+    """
+    This function averages together every 14 profiles of 
+    X and returns the resulting ndarray
 
-    X = np.transpose(X, (0,2,1))
-    width = X.shape[0]
+    Parameters
+    ----------
+    X : ndarray
+        Photon count array.
+
+    Returns
+    -------
+    combined : ndarray
+        ndarray with every 14 profiles averages together.
+
+    """
+
     #channels first
-    #target 2048 width
-    split_constant = width // 14
+    X = np.transpose(X, (0,2,1))
+
+
+    width = X.shape[0]
+
+    #Determine how many chunks to create
+    split_constant = width // 14 
+    
+    #split into chunks of 14
     split_X = np.array_split(X, split_constant, axis=0)
-    tmp = []
+    holder = []
+    
+    #Average together each chunk and append onto holder
     for chunk in split_X:
         n_chunk = np.average(chunk, axis=0)
-        tmp.append(n_chunk)
-    combined = np.stack(tmp, axis=0)
+        holder.append(n_chunk)
+    
+    #Combine all arrays in holder into a numpy array
+    combined = np.stack(holder, axis=0)
 
     return combined
     
+
+
+
+
+
         
         
    

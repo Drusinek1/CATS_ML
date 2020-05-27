@@ -29,51 +29,7 @@ bg_st_bin = 400
 bg_ed_bin = 480
 
 
-
-
-def crop(im, d): 
-    #Channels first
-    im = np.transpose(im, (1,2,0))
-    cnt = 0
-    stopw = im.shape[2] // d
-    print("stopw = {}".format(stopw))
-    #calculate p
-    p = im.shape[2] // stopw
-    
-    
-    tmp_lst = []
-    for i in range(0,stopw):
-        window = im[:,0+cnt:cnt+d,0+cnt:cnt+p]
-        tmp_lst.append(window)
-        cnt += 1
-      
-    print("Cropped {} samples".format(cnt))
-    return np.asarray(tmp_lst)
-
-# def merge(lst, row_size):
-    
-#     lst = np.asarray(lst)
-#     lst = lst.reshape() # Some shape
-    
-#     n_lst = np.concatenate([lst])
-#     """
-#     Parameters
-#     ----------
-#     lst : list(ndarrays)
-    
-#     Returns
-#     -------
-#     ndarray
-#     """
-#     img = lst[0]
-#     idx = lst[0].shape[0] #width of full image
-#     for row in range(0,img.shape[1])
-#         np.concatenate(lst[:)
-
-            
-   
-
-        
+     
 
 def plot(X):
     plt.imshow(X[0,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
@@ -108,59 +64,111 @@ def remove_background_radiation(img):
 
 # https://stackoverflow.com/questions/36960320/convert-a-2d-matrix-to-a-3d-one-hot-matrix-numpy @Divakar
 def onehot(a):
+    """
+    This function one hot codes an an array with N classifcation categories
+
+    Parameters
+    ----------
+    a : ndarray
+        Array to be one hot encoded.
+
+    Returns
+    -------
+    out : ndarray
+        One hot encoded array.
+
+    """
     ncols = a.max()+1
     out = np.zeros(a.shape + (ncols,), dtype=int)
     out[all_idx(a, axis=2)] = 1
     return out
 
-# https://stackoverflow.com/a/46103129/ @Divakar
-def all_idx(idx, axis):
-    grid = np.ogrid[tuple(map(slice, idx.shape))]
-    grid.insert(axis, idx)
-    return tuple(grid)
 
 
 
 def get_input(file):
+    """
+    This function recieves a .dat L0 file and extracts an 
+    ndarray of photon counts to use for training
+
+    Parameters
+    ----------
+    file : .dat
+        an L0 file
+
+    Returns
+    -------
+    out : ndarray
+        Photon counts
+    """
+    
+    #import the raw photon counts
     X = read_routines.read_in_cats_l0_data(file, nchans, nbins)['chan'][:,-2:,:]
+    
     X = remove_background_radiation(X)
-
-    X = avg_data.drop(X)
+    
+    #drop bad profiles 
+    X = avg_data.drop_flagged_profiles(X)
    
-    X = avg_data.avg_profs(X)
-
-    """
-    Adding extra channel
-    """
-  
-
+    #Average together every 14 profiles
+    X = avg_data.avg_profs(X)  
+    
+    #Calculate a third artificial channel
     chan1 = X[:,:,0]
     chan2 = X[:,:,1]
-    prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
-    full = np.concatenate([X, prod], axis=2) 
-    full = cv2.resize(full, dsize=(512,1024), interpolation=cv2.INTER_AREA)
-    #cropped_full = crop(full, 25)
     
+    #calculate product of chan1 and chan2
+    prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
+    
+    #Combine 3rd channel with original data
+    full = np.concatenate([X, prod], axis=2)
+    
+    #resize to shape (1024,512) to prepare for UNET
+    full = cv2.resize(full, dsize=(512,1024), interpolation=cv2.INTER_AREA)
+
     return full
 
 def get_targets(file):
+    """
+    This function recieves an hdf5 file and returns
+    an array of the retrieved L2 data with all classes converted
+    to 0 (nothing) or 1 (cloud or aerosol)
 
+    Parameters
+    ----------
+    file : hdf5 file
+        an L2 file
+
+    Returns
+    -------
+    out : ndarray
+        L2 data
+    """
     hdf5 = h5py.File(file, 'r')
     target = np.asarray(hdf5['profile/Feature_Type_Fore_FOV'])
+    print(target.shape)
     #Resize Image
     
+
     target_r = cv2.resize(target, dsize=(512,1024), interpolation=cv2.INTER_AREA)
     target_r[target_r != 0] = 1
+    #target_one_hot = onehot(target_r)
+
+
     #target_one_hot = onehot(target_r)
 
     return target_r
 
 
-
+#Path to directory containin training .dat files and .hdf5
 directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 
 x_lst = []
+
+#counter for for loop
 nn = 1
+
+#Format each dat file in directory with get_input and append onto x_lst
 for file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, file))
     img = get_input(file)
@@ -169,10 +177,13 @@ for file in glob.glob('{}/*.dat'.format(directory)):
     nn+=1
 
 
+
 np.save('questions', x_lst)
 
 
 nn = 1
+
+#Format each hdf5 file in directory with get_target and append onto t_lst
 
 t_lst = []
 for file in glob.glob('{}/*.hdf5'.format(directory)):
@@ -181,13 +192,16 @@ for file in glob.glob('{}/*.hdf5'.format(directory)):
     t_lst.append(img)
     nn+=1
     
+#save formatted dataset as a binary .npy file for later use
 np.save('answers', t_lst)
 
-
+#directory containing test dat and hdf5 data
 directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
 
 x_lst = []
 nn = 1
+
+#Same spiel as above but for training data
 for file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, file))
     img = get_input(file)        
@@ -198,7 +212,7 @@ np.save('test_questions', x_lst)
 
 
 directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
-
+nn = 1
 t_lst = []
 for file in glob.glob('{}/*.hdf5'.format(directory)):
     print("Reading {} {}...".format(nn, file))
