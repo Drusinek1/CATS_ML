@@ -46,9 +46,10 @@ def crop(img, windowsize_r, windowsize_c):
 
 
 cropped = crop(test_image,100,100)
+assert(cropped[0].shape[0] * len(cropped) == orig_shape)
 
-for idx, img in enumerate(cropped):
-    plt.figure()
-    plt.imshow(img)
-    plt.title("Window # {}".format(idx))
+# for idx, img in enumerate(cropped):
+#     plt.figure()
+#     plt.imshow(img)
+#     plt.title("Window # {}".format(idx))
 

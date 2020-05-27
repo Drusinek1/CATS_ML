@@ -135,39 +135,6 @@ def all_idx(idx, axis):
 
 
 
-
-def get_targets(file):
-    """
-    This function recieves an hdf5 file and returns
-    an array of the retrieved L2 data with all classes converted
-    to 0 (nothing) or 1 (cloud or aerosol)
-
-    Parameters
-    ----------
-    file : hdf5 file
-        an L2 file
-
-    Returns
-    -------
-    out : ndarray
-        L2 data
-    """
-    hdf5 = h5py.File(file, 'r')
-    target = np.asarray(hdf5['profile/Feature_Type_Fore_FOV'])
-    print(target.shape)
-    #Resize Image
-    
-
-    target_r = cv2.resize(target, dsize=(512,1024), interpolation=cv2.INTER_AREA)
-    target_r[target_r != 0] = 1
-    #target_one_hot = onehot(target_r)
-
-
-    #target_one_hot = onehot(target_r)
-
-    return target_r
-
-
 #Path to directory containin training .dat files and .hdf5
 directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 
@@ -198,19 +165,22 @@ def get_input(X):
     prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
     full = np.concatenate([X, prod], axis=2) 
     cropped_full = crop(full,10,10)
-
+    cropped_full = np.stack(cropped_full, axis=0)
+    
     return cropped_full
 
 def get_targets(file):
 
     hdf5 = h5py.File(file, 'r')
     target = np.asarray(hdf5['profile/Feature_Type_Fore_FOV'])
-    #Resize Image
-    
-    target_r = cv2.resize(target, dsize=(1024,512), interpolation=cv2.INTER_AREA)
-    target_r[target_r != 0] = 1
+    target = crop(target,10,10)
+    target = np.stack(target, axis=0)
+
+    # target_r = cv2.resize(target, dsize=(1024,512), interpolation=cv2.INTER_AREA)
+    # target_r[target_r != 0] = 1
     #target_one_hot = onehot(target_r)
-    return target_r
+    
+    return target
 
 
 
@@ -240,7 +210,7 @@ for file in glob.glob('{}/*.hdf5'.format(directory)):
     img = get_targets(file)
     t_lst.append(img)
     nn+=1
-    
+
 #save formatted dataset as a binary .npy file for later use
 np.save('answers', t_lst)
 
@@ -272,9 +242,7 @@ for file in glob.glob('{}/*.hdf5'.format(directory)):
 np.save('test_answers', t_lst)
 
 
-np.save('questions', x_lst)
 
-blah = np.load("questions.npy", allow_pickle=True)
 
 # nn = 1
 
