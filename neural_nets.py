@@ -10,6 +10,7 @@ import pdb
 
 """
 <<<<<<< HEAD
+<<<<<<< HEAD
 This function will initialize a unet model
 input: 
     img: input image 
@@ -24,6 +25,9 @@ input:
 =======
 Contains CNN architecture classes
 >>>>>>> master
+=======
+Contains CNN architecture classes
+>>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
     @type: list(int)
     
 """
