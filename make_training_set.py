@@ -12,7 +12,7 @@ import pdb
 import avg_data
 import lidar
 from matplotlib import pyplot as plt
-import imutils
+
 from PIL import Image
 
 
@@ -29,9 +29,39 @@ bg_st_bin = 400
 bg_ed_bin = 480
 
 
-     
+def crop(img, windowsize_r, windowsize_c):
+    """
+    This function splits one image into a list of several small images
+    
+    Parameters
+    ----------
+    a : ndarray
+        image to be split
+
+    Returns
+    -------
+    out : list[ndarray]
+        list of split images
+
+    """
+    
+
+    holder = []
+    for r in range(0,img.shape[0] - windowsize_r, windowsize_r):
+        for c in range(0,img.shape[1] - windowsize_c, windowsize_c):
+            window = img[r:r+windowsize_r,c:c+windowsize_c]
+            holder.append(window)
+    
+    return holder
 
 def plot(X):
+    """
+    This is a plotting routine for visualizing training and test data
+   
+    Note first dimension of images represents the sample number so plotting
+    plot(X) will result in an error. Use plot(X[sample_number]) sample number starts
+    at zero
+    """
     plt.imshow(X[0,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
     plt.show()
     plt.imshow(X[1,:,:].T, aspect='auto', cmap=lidar.get_a_color_map())
@@ -104,29 +134,31 @@ def get_input(file):
     
     #import the raw photon counts
     X = read_routines.read_in_cats_l0_data(file, nchans, nbins)['chan'][:,-2:,:]
-    
     X = remove_background_radiation(X)
-    
-    #drop bad profiles 
+     #drop bad profiles 
     X = avg_data.drop_flagged_profiles(X)
-   
+    X = np.transpose(X, (0,2,1))
+
+
     #Average together every 14 profiles
     X = avg_data.avg_profs(X)  
-    
+    X = np.transpose(X,(0,2,1))
+
     #Calculate a third artificial channel
     chan1 = X[:,:,0]
     chan2 = X[:,:,1]
     
     #calculate product of chan1 and chan2
-    prod = np.transpose(np.array([chan1 * chan2]), (1,2,0))
-    
+    prod = np.array([chan1 * chan2])
+    prod = np.transpose(prod, (1,2,0))
+   
     #Combine 3rd channel with original data
-    full = np.concatenate([X, prod], axis=2)
-    
-    #resize to shape (1024,512) to prepare for UNET
-    full = cv2.resize(full, dsize=(512,1024), interpolation=cv2.INTER_AREA)
+    X = np.concatenate([X,prod], axis=2)
 
-    return full
+   
+    cropped = crop(X,10,10) #arbitrary split sizes for now
+
+    return cropped
 
 def get_targets(file):
     """

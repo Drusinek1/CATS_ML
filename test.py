@@ -25,6 +25,7 @@ plt.title("Before Windowing")
 
 
 
+
 # Define the window size
 windowsize_r = 5
 windowsize_c = 5
@@ -40,35 +41,14 @@ def crop(img, windowsize_r, windowsize_c):
     
     return np.stack(holder, axis=0)
 
-def merge(tiles):
-    """
-    This function takes an ndarray of shape (I,M,N) where I is a certain number
-    of MxN arrays resulting from splitting the full image
-    
-    Parameters
-    ----------
-    X : numpy array
-        array list to merge.
-    Returns
-    -------
-    ndarray of merged images.
-    """
-    for tile in tiles:
 
-      
-
-
-    pdb.set_trace()
 
 
 
 cropped = crop(test_image,100,100)
 
-# for idx, img in enumerate(cropped):
-#     plt.figure()
-#     plt.imshow(img)
-#     plt.title("Window # {}".format(idx))
+for idx, img in enumerate(cropped):
+    plt.figure()
+    plt.imshow(img)
+    plt.title("Window # {}".format(idx))
 
-#merged = merge(cropped,cropped_lst, orig_shape)
-
-#merged = merge(cropped,)
