@@ -29,7 +29,7 @@ l0_n_bins = 480
 # For L2 frame, bg bins are 506-533 {end}
 bg_st_bin = 400
 bg_ed_bin = 480
-width_to_separate = 300  # Number of records we would like each image to be
+width_to_separate = 256  # Number of records we would like each image to be
 
 
 def crop(img, windowsize_r, windowsize_c):
@@ -93,9 +93,9 @@ def plot(image_array):
     plot(X) will result in an error. Use plot(X[sample_number]) sample number starts
     at zero
     """
-    plt.imshow(image_array[0, :, :].T, aspect='auto', cmap=get_a_color_map())
+    plt.imshow(image_array[:, 0, :].T, aspect='auto', cmap=get_a_color_map())
     plt.show()
-    plt.imshow(image_array[1, :, :].T, aspect='auto', cmap=get_a_color_map())
+    plt.imshow(image_array[:, 1, :].T, aspect='auto', cmap=get_a_color_map())
     plt.show()
     
     return None
@@ -215,8 +215,10 @@ def get_targets(file, top_bin_limit, bot_bin_limit):
     target = target[top_bin_limit:bot_bin_limit, :]
     cropped_full = separate_images(np.transpose(target), width_to_separate)
     # target_r = cv2.resize(target, dsize=(1024, 512), interpolation=cv2.INTER_AREA)
-
     for target_element in np.arange(0, len(cropped_full)):
+        # Equivalent to 4 is the same as attenuated bin
+        cropped_full[target_element][np.where(cropped_full[target_element] == 4)] = 0
+        # All other Positive values means there is a layer of some type
         cropped_full[target_element][np.where(cropped_full[target_element] > 0)] = 1
     # cropped_full[cropped_full != 0] = 1
     # target_one_hot = onehot(target_r)
@@ -226,7 +228,7 @@ def get_targets(file, top_bin_limit, bot_bin_limit):
 # ********** Beginning of Main ********** #
 # directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 # directory = "C:\\Users\\pselmer\\Documents\\CATS_ISS\\Data_samples\\NN_train\\"
-directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\"
+directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\test_records\\"
 
 # Get fixed (L2) and original (L0) vertical bin frames
 # Updated to array instead of file read on 5/27/2020
@@ -269,12 +271,9 @@ for input_file in glob.glob('{}/*.dat'.format(directory)):
 
 for question_images in x_lst:
     print(question_images.shape)
-np.save('questions', x_lst)
+np.save('test_questions', x_lst)
 
 print("Questions completed, moving onto Answers!")
-# directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
-# directory = "C:\\Users\\pselmer\\Documents\\CATS_ISS\\Data_samples\\NN_train\\"
-directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\"
 
 nn = 1
 
@@ -289,7 +288,7 @@ for target_file in glob.glob('{}/*.hdf5'.format(directory)):
 for answer_images in t_lst:
     print(answer_images.shape)
 
-np.save('answers', t_lst)
+np.save('test_answers', t_lst)
 
 
 # directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
