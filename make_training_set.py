@@ -9,7 +9,9 @@ import glob
 import h5py
 import pdb
 from matplotlib import pyplot as plt
+
 # import imutils
+
 from PIL import Image
 
 import avg_data
@@ -48,16 +50,25 @@ def crop(img, windowsize_r, windowsize_c):
     -------
     out : list[ndarray]
         list of split images
+
     """
-
+    
     holder = []
-    for r in range(0, img.shape[0] - windowsize_r, windowsize_r):
-        for c in range(0, img.shape[1] - windowsize_c, windowsize_c):
-            window = img[r:r + windowsize_r, c:c + windowsize_c]
+    for r in range(0,img.shape[0] - windowsize_r, windowsize_r):
+        for c in range(0,img.shape[1] - windowsize_c, windowsize_c):
+            window = img[r:r+windowsize_r,c:c+windowsize_c]
             holder.append(window)
-
+    
     return holder
 
+def plot(X):
+    """
+    This is a plotting routine for visualizing training and test data
+   
+    Note first dimension of images represents the sample number so plotting
+    plot(X) will result in an error. Use plot(X[sample_number]) sample number starts
+    at zero
+    """
 
 def separate_images(full_image, width_of_separation):
     """
@@ -128,18 +139,23 @@ def remove_background_radiation(img):
 
 # https://stackoverflow.com/questions/36960320/convert-a-2d-matrix-to-a-3d-one-hot-matrix-numpy @Divakar
 def onehot(a):
+
     """
     This function one hot codes an an array with N classification categories
+
     Parameters
     ----------
     a : ndarray
         Array to be one hot encoded.
+
     Returns
     -------
     out : ndarray
         One hot encoded array.
+
     """
     ncols = a.max() + 1
+
     out = np.zeros(a.shape + (ncols,), dtype=int)
     out[all_idx(a, axis=2)] = 1
     return out
@@ -277,7 +293,6 @@ print("Questions completed, moving onto Answers!")
 directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\"
 
 nn = 1
-
 t_lst = []
 for target_file in glob.glob('{}/*.hdf5'.format(directory)):
     print("Reading {} {}...".format(nn, target_file))
