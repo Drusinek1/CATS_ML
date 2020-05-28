@@ -14,13 +14,10 @@ from matplotlib import pyplot as plt
 import lidar
 import glob 
 
-
-
-nchans=12
-nbins=480
+nchans = 12
+nbins = 480
 bg_st_bin = 400
 bg_ed_bin = 480
-
 
 
 def remove_background_radiation(img):
@@ -32,13 +29,15 @@ def remove_background_radiation(img):
     # creating an array that is shape (records, chans). This array
     # will be the solar background signal in each channel for each record.
 
-    bg = np.mean(bg_reg_subset, axis=2) # axis 0 is chans, axis 1 is bins, axis 2 is profiles
+    pdb.set_trace()
+    bg = np.mean(bg_reg_subset, axis=2)  # axis 0 is chans, axis 1 is bins, axis 2 is profiles
+
     # Create a 3D array of background to avoid looping. This 3D array's values will ONLY vary
     # with channel and record, NOT with bin. Shape will be (bin, records, chans)
-    bg3D = np.tile(bg, (480,1,1))
+    bg3D = np.tile(bg, (480, 1, 1))
     # Transpose shape to match input, 'img' array. (records, chans, bins)
     
-    bg3D = np.transpose(bg3D, (1,2,0))
+    bg3D = np.transpose(bg3D, (1, 2, 0))
     # print('Shape of bg3D: ', bg3D.shape)
     # print('Shape of img: ', img.shape)
 
@@ -47,13 +46,9 @@ def remove_background_radiation(img):
 
     return img
 
-
-
-
-
-def drop_flagged_profiles(A):
+  
+def drop(raw_l0_array):
     """
-    
     Parameters
     ----------
     A : ndarray
@@ -65,11 +60,23 @@ def drop_flagged_profiles(A):
         data with flagged profiles removed
 
     """
-    for prof in A:
-        if A[0][0][0] == 2**14:
-            A = np.delete(A,0,0)
+    # Function updated on 5/27/2020 by Andrew Kupchock to change logic for appropriate removal of profiles
+    print('Maximum value before is ', raw_l0_array.max())
+    counter = 0
+    for prof in raw_l0_array:
+        if prof.max() == 2 ** 14:
+            raw_l0_array = np.delete(raw_l0_array, counter, axis=0)
+        else:
+            counter += 1
+    print('Maximum value after is ', raw_l0_array.max())
+    print('Drop Counter: ', counter, ' shape of remaining array:', raw_l0_array.shape)
 
-    return A
+    # if A[0][0][0] == 2**14:
+    #     A = np.delete(A, 0, 0)
+    # A = 
+    # tmp = np.copy(A)
+    # tmp = np.delete(tmp, idxs, axis=2)
+    return raw_l0_array
 
     
 def avg_profs(X):
@@ -87,23 +94,12 @@ def avg_profs(X):
     -------
     combined : ndarray
         ndarray with every 14 profiles averages together.
-
     """
-
-
-
     width = X.shape[0]
-
-    #channels first
-    X = np.transpose(X, (0,2,1))
-
-
-    width = X.shape[0]
-
-    #Determine how many chunks to create
-    split_constant = width // 14 
-    
-    #split into chunks of 14
+    # channels first
+    # target 2048 width
+    split_constant = width // 14
+    print('Dropping ', np.mod(width, 14), ' records when taking the average of 14')
     split_X = np.array_split(X, split_constant, axis=0)
 
     holder = []
@@ -125,7 +121,4 @@ def avg_profs(X):
         tmp_group = np.average(group, axis=0)
         tmp.append(tmp_group)
     return np.array(tmp)
-
-        
-   
 

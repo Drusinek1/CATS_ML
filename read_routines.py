@@ -20,9 +20,10 @@ import os
 from subprocess import check_output
 
 # Libraries I have created...
-from immutable_data_structs import * #data structs that don't change
-from mutable_data_structs import *   #data structs that can change
+from immutable_data_structs import *  # data structs that don't change
+from mutable_data_structs import *    # data structs that can change
 from time_conversions import weeksecondstoutc, delta_datetime_vector
+
 
 def delete_file_in_Windows(file_name):
     """ Delete a file in Windows OS. """
@@ -40,13 +41,13 @@ def delete_file_in_Unix(file_name):
 
 def delete_file(file_name):
     """ Calls appropriate function depending on OS. """
-    if (os.name != 'nt'):                                # Linux/Unix
+    if os.name != 'nt':                                # Linux/Unix
         delete_file_in_Unix(file_name)
     else:                                                # Windows
         delete_file_in_Windows(file_name)    
     
 
-def create_a_file_list_in_Windows(file_list,search_str,raw_dir):    
+def create_a_file_list_in_Windows(file_list, search_str, raw_dir):
     """ This code  will create a file list in the current directory
         with the given input name. The other input text string is 
         so code can be reused to search for different systematically
@@ -61,7 +62,7 @@ def create_a_file_list_in_Windows(file_list,search_str,raw_dir):
     cmd_feedback = check_output(cmd, shell=True)
     
     
-def create_a_file_list_in_Unix(file_list,search_str,raw_dir):
+def create_a_file_list_in_Unix(file_list, search_str, raw_dir):
     """ This code will create a file list in the current directory
         with the given input name. The other input text string is
         so code can be reused to search for different systematically
@@ -76,19 +77,19 @@ def create_a_file_list_in_Unix(file_list,search_str,raw_dir):
     
     # *** NOTE *** 
     # This code relies on an external C-shell script.
-    cmd = 'rm -f ' + file_list #-f added 8/22/18, making touch unnessessary
+    cmd = 'rm -f ' + file_list  # -f added 8/22/18, making touch unnecessary
     cmd_feedback = check_output(cmd, shell=True)
     cmd = './make_file_list_unix ' + raw_dir + ' "' + search_str + '" > ' + file_list
     cmd_feedback = check_output(cmd, shell=True)   
     
     
-def create_a_file_list(file_list,search_str,raw_dir):
+def create_a_file_list(file_list, search_str, raw_dir):
     """ Calls appropriate function depending on OS. """
     
-    if (os.name != 'nt'):                                # Linux/Unix
-        create_a_file_list_in_Unix(file_list,search_str,raw_dir)
+    if os.name != 'nt':                                # Linux/Unix
+        create_a_file_list_in_Unix(file_list, search_str, raw_dir)
     else:                                                # Windows
-        create_a_file_list_in_Windows(file_list,search_str,raw_dir)
+        create_a_file_list_in_Windows(file_list, search_str, raw_dir)
 
 
 def read_in_raw_data(fname):
@@ -99,18 +100,18 @@ def read_in_raw_data(fname):
     """
     
     # First, get nchans and nbins from the file...
-    samp = np.fromfile(fname,MCS_meta_struct,count=1)
+    samp = np.fromfile(fname, MCS_meta_struct, count=1)
     
     # Next, use that info to form your MSC data structure...
     try:
-        MCS_struct = define_MSC_structure(samp['nchans'][0],samp['nbins'][0])
+        MCS_struct = define_MSC_structure(samp['nchans'][0], samp['nbins'][0])
     except IndexError:
-        print('Size of ingested data: ',samp.shape)
+        print('Size of ingested data: ', samp.shape)
         print('Bad data. Skipping file...')
         return None
     
     # Finally, read in all data from the file at once
-    MCS_data = np.fromfile( fname, MCS_struct, count=-1 )
+    MCS_data = np.fromfile(fname, MCS_struct, count=-1)
     
     return(MCS_data)
   
@@ -121,10 +122,10 @@ def read_in_housekeeping_data(fname):
         are provided from imported modules.
     """
     
-    return( np.fromfile( fname, hk_struct, count=-1 ) )
+    return np.fromfile(fname, hk_struct, count=-1)
   
     
-def filter_out_bad_recs(MCS_struct,minweek):
+def filter_out_bad_recs(MCS_struct, minweek):
     """ Currently, only works on CAMAL data [12/5/17]
         The data objects are CAMAL MCS or hk.
     """
@@ -135,7 +136,7 @@ def filter_out_bad_recs(MCS_struct,minweek):
     good_rec_mask = MCS_struct['meta']['GpsWeek'] > minweek 
     MCS_struct = MCS_struct[good_rec_mask]
     skip_flag = 0
-    if (MCS_struct.shape[0] == 0): skip_flag = 1
+    if MCS_struct.shape[0] == 0: skip_flag = 1
     
     return skip_flag
     
@@ -161,7 +162,7 @@ def read_in_gps_data(fname, file_len_secs, gps_hz, gps_pitch_offset, gps_roll_of
     # Initialize a numpy structure array to hold GPS data 
     # for a single file.
     
-    est_recs = int(file_len_secs * (gps_hz+1)) # add a little buffer
+    est_recs = int(file_len_secs * (gps_hz+1))  # add a little buffer
     gps_struct_1file = np.zeros(est_recs, dtype=gps_struct)
     
     f_obj = open(fname, 'rb')
@@ -187,7 +188,7 @@ def read_in_gps_data(fname, file_len_secs, gps_hz, gps_pitch_offset, gps_roll_of
                     gps_struct_1file[i]['pitch'] = gps_struct_1file[i]['pitch']*(-1.0)
                     gps_struct_1file[i]['roll'] = float(one_rec[10]) - gps_roll_offset
                     gps_struct_1file[i]['yaw'] = one_rec[11]
-                    #if gps_struct_1file[i]['GpsWeek'] > 0: pdb.set_trace()
+                    # if gps_struct_1file[i]['GpsWeek'] > 0: pdb.set_trace()
                     i += 1
                 except ValueError:
                     print('------------------------------------------------')
@@ -215,15 +216,15 @@ def read_in_gps_data(fname, file_len_secs, gps_hz, gps_pitch_offset, gps_roll_of
     return gps_struct_1file
     
     
-def read_in_IWG1_data(fname,est_recs):
+def read_in_IWG1_data(fname, est_recs):
     """ Routine to read in the IWG1 data. """
     
-    IWG1_data_1file = np.zeros(est_recs,dtype=IWG1_struct)
+    IWG1_data_1file = np.zeros(est_recs, dtype=IWG1_struct)
     
-    with open(fname,'r') as csvfile:
+    with open(fname, 'r') as csvfile:
         
         csvreader = csv.reader(csvfile)
-        r=0
+        r = 0
         datetimeformat = "%Y-%m-%dT%H:%M:%S.%f"
         
         for row in csvreader:
@@ -240,10 +241,10 @@ def read_in_IWG1_data(fname,est_recs):
             # non-IWG1 file to this routine), this try/except block will
             # safety stop code in debug mode.
             try:
-                IWG1_data_1file['UTC'][r] = DT.datetime.strptime(row[1],datetimeformat)
+                IWG1_data_1file['UTC'][r] = DT.datetime.strptime(row[1], datetimeformat)
                 IWG1_data_1file['lat'][r] = row[2]
                 IWG1_data_1file['lon'][r] = row[3]
-                IWG1_data_1file['GPS_alt_msl'][r] =  row[4]
+                IWG1_data_1file['GPS_alt_msl'][r] = row[4]
                 IWG1_data_1file['GPS_alt'][r] = row[5] 
                 IWG1_data_1file['press_alt'][r] = row[6] 
                 IWG1_data_1file['rad_alt'][r] = row[7] 
@@ -282,7 +283,7 @@ def read_in_IWG1_data(fname,est_recs):
     return IWG1_data_1file
 
 
-def decode_er2_like_wb57_nav_string(Nav_string,signs):
+def decode_er2_like_wb57_nav_string(Nav_string, signs):
     """ The WB57 Nav format is different from the ER2-style format.
         Andrew Kupchock wrote code that rewrites the WB57 Nav into the
         CLS files so that's it's compatible with the old, ER2-style
@@ -303,9 +304,9 @@ def decode_er2_like_wb57_nav_string(Nav_string,signs):
     #
     # CLS_decoded_nav_data -> 1-element array of dtype CLS_decoded_nav_struct
 
-    CLS_decoded_nav_data = np.zeros(1,dtype=CLS_decoded_nav_struct)
+    CLS_decoded_nav_data = np.zeros(1, dtype=CLS_decoded_nav_struct)
 
-    CLS_decoded_nav_data['UTC_Time'][0] = DT.datetime.strptime(flt_date[5:7]+'-'+Nav_string[4:16],'%y-%j:%H:%M:%S')
+    CLS_decoded_nav_data['UTC_Time'][0] = DT.datetime.strptime(flt_date[5:7]+'-'+Nav_string[4:16], '%y-%j:%H:%M:%S')
     CLS_decoded_nav_data['TrueHeading'][0] = float(Nav_string[37:44])
     CLS_decoded_nav_data['PitchAngle'][0] = float(Nav_string[45:53])
     CLS_decoded_nav_data['RollAngle'][0] = float(Nav_string[54:62])
@@ -319,7 +320,7 @@ def decode_er2_like_wb57_nav_string(Nav_string,signs):
     return CLS_decoded_nav_data
             
 
-def decode_er2_nav_string(Nav_fields,signs,flt_date,bad_cls_nav_time_value):
+def decode_er2_nav_string(Nav_fields, signs, flt_date, bad_cls_nav_time_value):
     """ This function decodes an input ER2-style CLS Nav list of strings into its
         constituent parameters. Function returns a "decoded_nav_struct"
         datatype array of length one.
@@ -334,57 +335,57 @@ def decode_er2_nav_string(Nav_fields,signs,flt_date,bad_cls_nav_time_value):
     #
     # CLS_decoded_nav_data -> 1-element array of dtype CLS_decoded_nav_struct
 
-    CLS_decoded_nav_data = np.zeros(1,dtype=CLS_decoded_nav_struct)
+    CLS_decoded_nav_data = np.zeros(1, dtype=CLS_decoded_nav_struct)
 
-    # --> Ommitting "Header" of 'Nav' until someone tells me they need it [4/4/18]
+    # --> Omitting "Header" of 'Nav' until someone tells me they need it [4/4/18]
     try:
-        CLS_decoded_nav_data['UTC_Time'][0] = DT.datetime.strptime(flt_date[5:7]+'-'+Nav_fields[1],'%y-%j:%H:%M:%S')
+        CLS_decoded_nav_data['UTC_Time'][0] = DT.datetime.strptime(flt_date[5:7]+'-'+Nav_fields[1], '%y-%j:%H:%M:%S')
     except:
         CLS_decoded_nav_data['UTC_Time'][0] = bad_cls_nav_time_value
     try:
-        CLS_decoded_nav_data['Lat'][0] = float( Nav_fields[2][1:] ) * signs[Nav_fields[2][0]]
+        CLS_decoded_nav_data['Lat'][0] = float(Nav_fields[2][1:]) * signs[Nav_fields[2][0]]
     except:
         CLS_decoded_nav_data['Lat'][0] = -999.9
     try:
-        CLS_decoded_nav_data['Lon'][0] = float( Nav_fields[3][1:] ) * signs[Nav_fields[3][0]]
+        CLS_decoded_nav_data['Lon'][0] = float(Nav_fields[3][1:]) * signs[Nav_fields[3][0]]
     except:
         CLS_decoded_nav_data['Lon'][0] = -999.9
     try:
-        CLS_decoded_nav_data['TrueHeading'][0] = float( Nav_fields[4] )
+        CLS_decoded_nav_data['TrueHeading'][0] = float(Nav_fields[4])
     except:
         CLS_decoded_nav_data['TrueHeading'][0] = -999.9
     try:
-        CLS_decoded_nav_data['PitchAngle'][0] = float( Nav_fields[5][1:] ) * signs[Nav_fields[5][0]]
+        CLS_decoded_nav_data['PitchAngle'][0] = float(Nav_fields[5][1:]) * signs[Nav_fields[5][0]]
     except:
         CLS_decoded_nav_data['PitchAngle'][0] = -999.9
     try:
-        CLS_decoded_nav_data['RollAngle'][0] = float( Nav_fields[6][1:] ) * signs[Nav_fields[6][0]]
+        CLS_decoded_nav_data['RollAngle'][0] = float(Nav_fields[6][1:]) * signs[Nav_fields[6][0]]
     except:
         CLS_decoded_nav_data['RollAngle'][0] = -999.9
     try:
-        CLS_decoded_nav_data['GroundSpeed'][0] = float( Nav_fields[7] )
+        CLS_decoded_nav_data['GroundSpeed'][0] = float(Nav_fields[7])
     except:
         CLS_decoded_nav_data['GroundSpeed'][0] = -999.9
     try:
-        CLS_decoded_nav_data['TrackAngleTrue'][0] = float( Nav_fields[8] )
+        CLS_decoded_nav_data['TrackAngleTrue'][0] = float(Nav_fields[8])
     except:
         CLS_decoded_nav_data['TrackAngleTrue'][0] = -999.9
     try:
-        CLS_decoded_nav_data['InertialWindSpeed'][0] = float( Nav_fields[9] )
+        CLS_decoded_nav_data['InertialWindSpeed'][0] = float(Nav_fields[9])
     except:
         CLS_decoded_nav_data['InertialWindSpeed'][0] = -999.9
     try:
-        CLS_decoded_nav_data['InertialWindDirection'][0] = float( Nav_fields[10] )
+        CLS_decoded_nav_data['InertialWindDirection'][0] = float(Nav_fields[10])
     except:
         CLS_decoded_nav_data['InertialWindDirection'][0] = -999.9
     try: # Just leave blank if bad.
-        CLS_decoded_nav_data['BodyLongitAccl'][0] = float( Nav_fields[11][1:] ) * signs[Nav_fields[11][0]]
-        CLS_decoded_nav_data['BodyLateralAccl'][0] = float( Nav_fields[12][1:] ) * signs[Nav_fields[12][0]]
-        CLS_decoded_nav_data['BodyNormalAccl'][0] = float( Nav_fields[13][1:] ) * signs[Nav_fields[13][0]]
-        CLS_decoded_nav_data['TrackAngleRate'][0] = float( Nav_fields[14][1:] ) * signs[Nav_fields[14][0]]
-        CLS_decoded_nav_data['PitchRate'][0] = float( Nav_fields[15][1:] ) * signs[Nav_fields[15][0]]
-        CLS_decoded_nav_data['RollRate'][0] = float( Nav_fields[16][1:] ) * signs[Nav_fields[16][0]]	
-        CLS_decoded_nav_data['InertialVerticalSpeed'][0] = float( Nav_fields[17][1:] ) * signs[Nav_fields[17][0]]
+        CLS_decoded_nav_data['BodyLongitAccl'][0] = float(Nav_fields[11][1:]) * signs[Nav_fields[11][0]]
+        CLS_decoded_nav_data['BodyLateralAccl'][0] = float(Nav_fields[12][1:]) * signs[Nav_fields[12][0]]
+        CLS_decoded_nav_data['BodyNormalAccl'][0] = float(Nav_fields[13][1:]) * signs[Nav_fields[13][0]]
+        CLS_decoded_nav_data['TrackAngleRate'][0] = float(Nav_fields[14][1:]) * signs[Nav_fields[14][0]]
+        CLS_decoded_nav_data['PitchRate'][0] = float(Nav_fields[15][1:]) * signs[Nav_fields[15][0]]
+        CLS_decoded_nav_data['RollRate'][0] = float(Nav_fields[16][1:]) * signs[Nav_fields[16][0]]
+        CLS_decoded_nav_data['InertialVerticalSpeed'][0] = float(Nav_fields[17][1:]) * signs[Nav_fields[17][0]]
     except:
         CLS_decoded_nav_data['BodyLongitAccl'][0] = -999.9
         CLS_decoded_nav_data['BodyLateralAccl'][0] = -999.9
@@ -394,30 +395,30 @@ def decode_er2_nav_string(Nav_fields,signs,flt_date,bad_cls_nav_time_value):
         CLS_decoded_nav_data['RollRate'][0] = -999.9
         CLS_decoded_nav_data['InertialVerticalSpeed'][0] = -999.9
     try:
-        CLS_decoded_nav_data['GPS_Altitude'][0] = float( Nav_fields[18] )
+        CLS_decoded_nav_data['GPS_Altitude'][0] = float(Nav_fields[18])
     except:
         CLS_decoded_nav_data['GPS_Altitude'][0] = -999.9
     try:
-        CLS_decoded_nav_data['GPS_Latitude'][0] = float( Nav_fields[19][1:] ) * signs[Nav_fields[19][0]]
+        CLS_decoded_nav_data['GPS_Latitude'][0] = float(Nav_fields[19][1:]) * signs[Nav_fields[19][0]]
     except:
         CLS_decoded_nav_data['GPS_Latitude'][0] = -999.9
     try:
-        CLS_decoded_nav_data['GPS_Longitude'][0] = float( Nav_fields[20][1:] ) * signs[Nav_fields[20][0]]
+        CLS_decoded_nav_data['GPS_Longitude'][0] = float(Nav_fields[20][1:]) * signs[Nav_fields[20][0]]
     except:
         CLS_decoded_nav_data['GPS_Longitude'][0] = -999.9
     try:
-        CLS_decoded_nav_data['StaticPressure'][0] = float( Nav_fields[21] )
-        CLS_decoded_nav_data['TotalPressure'][0] = float( Nav_fields[22] )
-        CLS_decoded_nav_data['DifferentialPressure'][0] = float( Nav_fields[23] )
-        CLS_decoded_nav_data['TotalTemperature'][0] = float( Nav_fields[24][1:] ) * signs[Nav_fields[24][0]]
-        CLS_decoded_nav_data['StaticTemperature'][0] = float( Nav_fields[25][1:] ) * signs[Nav_fields[25][0]]
-        CLS_decoded_nav_data['BarometricAltitude'][0] = float( Nav_fields[26] )
-        CLS_decoded_nav_data['MachNo'][0] = float( Nav_fields[27] )
-        CLS_decoded_nav_data['TrueAirSpeed'][0] = float( Nav_fields[28] )
-        CLS_decoded_nav_data['WindSpeed'][0] = float( Nav_fields[29] )
-        # --> "WindDirection" is nan in Podex files that I used to develop this. Omitting [4/3/18]
-        CLS_decoded_nav_data['SunElevation'][0] = float( Nav_fields[31][1:] ) * signs[Nav_fields[31][0]]
-        CLS_decoded_nav_data['SunAzimuth'][0] = float( Nav_fields[32][1:] ) * signs[Nav_fields[32][0]]
+        CLS_decoded_nav_data['StaticPressure'][0] = float(Nav_fields[21])
+        CLS_decoded_nav_data['TotalPressure'][0] = float(Nav_fields[22])
+        CLS_decoded_nav_data['DifferentialPressure'][0] = float(Nav_fields[23])
+        CLS_decoded_nav_data['TotalTemperature'][0] = float(Nav_fields[24][1:]) * signs[Nav_fields[24][0]]
+        CLS_decoded_nav_data['StaticTemperature'][0] = float(Nav_fields[25][1:]) * signs[Nav_fields[25][0]]
+        CLS_decoded_nav_data['BarometricAltitude'][0] = float(Nav_fields[26])
+        CLS_decoded_nav_data['MachNo'][0] = float(Nav_fields[27])
+        CLS_decoded_nav_data['TrueAirSpeed'][0] = float(Nav_fields[28])
+        CLS_decoded_nav_data['WindSpeed'][0] = float(Nav_fields[29])
+        # --> "WindDirection" is nan in PODEX files that I used to develop this. Omitting [4/3/18]
+        CLS_decoded_nav_data['SunElevation'][0] = float(Nav_fields[31][1:]) * signs[Nav_fields[31][0]]
+        CLS_decoded_nav_data['SunAzimuth'][0] = float(Nav_fields[32][1:]) * signs[Nav_fields[32][0]]
     except:
         CLS_decoded_nav_data['StaticPressure'][0] = -999.9
         CLS_decoded_nav_data['TotalPressure'][0] = -999.9
@@ -435,7 +436,7 @@ def decode_er2_nav_string(Nav_fields,signs,flt_date,bad_cls_nav_time_value):
     return CLS_decoded_nav_data
 
 
-def decode_uav_nav_string(Nav_fields,flt_date,bad_cls_nav_time_value):
+def decode_uav_nav_string(Nav_fields, flt_date, bad_cls_nav_time_value):
     """ This function decodes an input UAV-style CLS Nav list of strings into its
         constituent parameters. Function returns a "decoded_nav_struct"
         datatype array of length one.
@@ -451,75 +452,75 @@ def decode_uav_nav_string(Nav_fields,flt_date,bad_cls_nav_time_value):
 
     datetimeformat = "%Y-%m-%dT%H:%M:%S.%f"
 
-    CLS_decoded_nav_data = np.zeros(1,dtype=CLS_decoded_nav_struct)
+    CLS_decoded_nav_data = np.zeros(1, dtype=CLS_decoded_nav_struct)
 
     # --> Ommitting "Header" of 'Nav' until someone tells me they need it [4/4/18]
     try:
-        CLS_decoded_nav_data['UTC_Time'][0] = DT.datetime.strptime(Nav_fields[1],datetimeformat)
+        CLS_decoded_nav_data['UTC_Time'][0] = DT.datetime.strptime(Nav_fields[1], datetimeformat)
     except:
         CLS_decoded_nav_data['UTC_Time'][0] = bad_cls_nav_time_value
     try:
-        CLS_decoded_nav_data['GPS_Latitude'][0] = float( Nav_fields[2] )
+        CLS_decoded_nav_data['GPS_Latitude'][0] = float(Nav_fields[2])
     except:
         CLS_decoded_nav_data['GPS_Latitude'][0] = -999.9
     try:
-        CLS_decoded_nav_data['GPS_Longitude'][0] = float( Nav_fields[3] )
+        CLS_decoded_nav_data['GPS_Longitude'][0] = float(Nav_fields[3])
     except:
         CLS_decoded_nav_data['GPS_Longitude'][0] = -999.9
     try:
         # Try 4 or 5. May need to put this as init file option someday [5/22/18]		
-        CLS_decoded_nav_data['GPS_Altitude'][0] = float( Nav_fields[4] )
+        CLS_decoded_nav_data['GPS_Altitude'][0] = float(Nav_fields[4])
     except:
         CLS_decoded_nav_data['GPS_Altitude'][0] = -999.9
     try:
-        CLS_decoded_nav_data['PitchAngle'][0] = float( Nav_fields[16] )
+        CLS_decoded_nav_data['PitchAngle'][0] = float(Nav_fields[16])
     except:
         CLS_decoded_nav_data['PitchAngle'][0] = -999.9
     try:
-        CLS_decoded_nav_data['RollAngle'][0] = float( Nav_fields[17] )
+        CLS_decoded_nav_data['RollAngle'][0] = float(Nav_fields[17])
     except:
         CLS_decoded_nav_data['RollAngle'][0] = -999.9
     try:
-        CLS_decoded_nav_data['GroundSpeed'][0] = float( Nav_fields[8] )
+        CLS_decoded_nav_data['GroundSpeed'][0] = float(Nav_fields[8])
     except:
         CLS_decoded_nav_data['GroundSpeed'][0] = -999.9
     try:
-        CLS_decoded_nav_data['TrackAngleTrue'][0] = float( Nav_fields[14] )
+        CLS_decoded_nav_data['TrackAngleTrue'][0] = float(Nav_fields[14])
     except:
         CLS_decoded_nav_data['TrackAngleTrue'][0] = -999.9
     try:
-        CLS_decoded_nav_data['WindSpeed'][0] = float( Nav_fields[26] )
+        CLS_decoded_nav_data['WindSpeed'][0] = float(Nav_fields[26])
     except:
         CLS_decoded_nav_data['WindSpeed'][0] = -999.9
     try:
-        CLS_decoded_nav_data['WindDirection'][0] = float( Nav_fields[27] )
+        CLS_decoded_nav_data['WindDirection'][0] = float(Nav_fields[27])
     except:
         CLS_decoded_nav_data['WindDirection'][0] = -999.9
     try:
-        CLS_decoded_nav_data['SunElevation'][0] = float( Nav_fields[30] )
+        CLS_decoded_nav_data['SunElevation'][0] = float(Nav_fields[30])
     except:
         CLS_decoded_nav_data['SunElevation'][0] = -999.9
     try:
-        CLS_decoded_nav_data['SunAzimuth'][0] = float( Nav_fields[32] )
+        CLS_decoded_nav_data['SunAzimuth'][0] = float(Nav_fields[32])
     except:
         CLS_decoded_nav_data['SunAzimuth'][0] = -999.9
     try:
-        CLS_decoded_nav_data['StaticTemperature'][0] = float( Nav_fields[20] )
+        CLS_decoded_nav_data['StaticTemperature'][0] = float(Nav_fields[20])
     except:
         CLS_decoded_nav_data['StaticTemperature'][0] = -999.9
     try:
-        CLS_decoded_nav_data['TotalTemperature'][0] = float( Nav_fields[22] )
+        CLS_decoded_nav_data['TotalTemperature'][0] = float(Nav_fields[22])
     except:
         CLS_decoded_nav_data['TotalTemperature'][0] = -999.9
     try:
-        CLS_decoded_nav_data['StaticPressure'][0] = float( Nav_fields[23] )
+        CLS_decoded_nav_data['StaticPressure'][0] = float(Nav_fields[23])
     except:
         CLS_decoded_nav_data['StaticPressure'][0] = -999.9
 
     return CLS_decoded_nav_data    
             
             
-def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0,0,0)):
+def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0, 0, 0)):
     """ Routine to read in the IWG1 data in from those "nav" files 
         captured by the instrument.
     """
@@ -536,20 +537,19 @@ def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0,0,0)):
     # appropriate data structure. Bottom line: This function now
     # reads CAMAL, UAV-CPL, & ER2-CPL style nav text files.
     
-    nav_data_1file = np.zeros(est_recs,dtype=nav_struct)
+    nav_data_1file = np.zeros(est_recs, dtype=nav_struct)
     
-    with open(fname,'rb') as navfile:
+    with open(fname, 'rb') as navfile:
         
-        r=0
+        r = 0
         first_read = True	
         datetimeformatA = "%Y%m%d_%H%M%S: IWG1"
         datetimeformatB = "%Y-%m-%dT%H:%M:%S.%f"
         
         for line in navfile:
-	
             # Split the line into an array of byte objects
             row_byte_list = line.split(b",")
-            row = [] # row of strings  
+            row = []  # row of strings
             
             # Determine nav text file style
             if first_read:
@@ -559,7 +559,7 @@ def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0,0,0)):
                     print('ER2 Nav-style text file detected')
                     print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
                     file_style = 'ER2'
-                    signs = { 'S':-1.0, 'N':1.0, 'W':-1.0, 'E':1.0, '-':-1.0, '+':1.0 }
+                    signs = {'S':-1.0, 'N':1.0, 'W':-1.0, 'E':1.0, '-':-1.0, '+':1.0 }
                 elif row_byte_list[0] == b"IWG1":
                     print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
                     print('UAV Nav-style text file detected')
@@ -581,23 +581,23 @@ def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0,0,0)):
                 if col == b"":
                     row.append(-999.9)
                 else:
-                    row.append(col.decode('utf8','replace'))
+                    row.append(col.decode('utf8', 'replace'))
                 c += 1
 
             try:    
                 # These 2 file_styles are identical, save the first column
-                if ((file_style == 'CAMAL') or (file_style == 'UAV')):
-                    if file_style == 'CAMAL': 
-                      nav_data_1file['UnixT'][r] = DT.datetime.strptime(row[0],datetimeformatA) + UTC_adj
-                    nav_data_1file['UTC'][r] = DT.datetime.strptime(row[1],datetimeformatB)
+                if (file_style == 'CAMAL') or (file_style == 'UAV'):
+                    if file_style == 'CAMAL':
+                        nav_data_1file['UnixT'][r] = DT.datetime.strptime(row[0], datetimeformatA) + UTC_adj
+                    nav_data_1file['UTC'][r] = DT.datetime.strptime(row[1], datetimeformatB)
                     nav_data_1file['lat'][r] = row[2]
                     nav_data_1file['lon'][r] = row[3]
-                    nav_data_1file['GPS_alt_msl'][r] =  row[4]
-                    nav_data_1file['GPS_alt'][r] = row[5] 
-                    nav_data_1file['press_alt'][r] = row[6] 
-                    nav_data_1file['rad_alt'][r] = row[7] 
+                    nav_data_1file['GPS_alt_msl'][r] = row[4]
+                    nav_data_1file['GPS_alt'][r] = row[5]
+                    nav_data_1file['press_alt'][r] = row[6]
+                    nav_data_1file['rad_alt'][r] = row[7]
                     nav_data_1file['ground_spd'][r] = row[8]
-                    nav_data_1file['true_airspd'][r] = row[9] 
+                    nav_data_1file['true_airspd'][r] = row[9]
                     nav_data_1file['ind_airspd'][r] = row[10]
                     nav_data_1file['mach_num'][r] = row[11] 
                     nav_data_1file['vert_spd'][r] = row[12]
@@ -620,14 +620,14 @@ def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0,0,0)):
                     nav_data_1file['sol_zen'][r] = row[29] 
                     nav_data_1file['air_sun_elev'][r] = row[30]
                     nav_data_1file['so_azi'][r] = row[31]
-                    #nav_data_1file['air_sun_azi'][r] = row[32]
+                    # nav_data_1file['air_sun_azi'][r] = row[32]
                 elif file_style == 'ER2':
                     # You need to decode this first...
-                    cls_decoded_nav = decode_er2_nav_string(row,signs,flt_date,bad_cls_nav_time_value)
+                    cls_decoded_nav = decode_er2_nav_string(row, signs, flt_date, bad_cls_nav_time_value)
                     nav_data_1file['UTC'][r] = cls_decoded_nav['UTC_Time'][0]
                     nav_data_1file['lat'][r] = cls_decoded_nav['GPS_Latitude'][0]
                     nav_data_1file['lon'][r] = cls_decoded_nav['GPS_Longitude'][0]
-                    nav_data_1file['GPS_alt_msl'][r] =  cls_decoded_nav['GPS_Altitude'][0]
+                    nav_data_1file['GPS_alt_msl'][r] = cls_decoded_nav['GPS_Altitude'][0]
                     nav_data_1file['GPS_alt'][r] = cls_decoded_nav['GPS_Altitude'][0]
                     pdb.set_trace()
                     nav_data_1file['press_alt'][r] = cls_decoded_nav['BarometricAltitude'][0]
@@ -663,7 +663,6 @@ def read_in_nav_data(fname, est_recs, UTC_adj=DT.timedelta(0,0,0)):
                 print('row # : ' + str(r))
                 continue
 
-                
     nav_data_1file = nav_data_1file[0:r]
     return nav_data_1file
 
@@ -684,8 +683,8 @@ def read_in_dead_time_table(fname):
     
     data_list = []
     
-    with open(fname,'rb') as f_obj:
-        for block in iter(partial(f_obj.read, 4),''):
+    with open(fname, 'rb') as f_obj:
+        for block in iter(partial(f_obj.read, 4), ''):
             try:
                 data_list.append(xdrlib.Unpacker(block).unpack_float())
             except EOFError:
@@ -693,7 +692,7 @@ def read_in_dead_time_table(fname):
     print("Done reading in dead time table:\n"+fname)
     
     # Convert list to array then return array
-    return np.asarray(data_list,dtype=np.float32)
+    return np.asarray(data_list, dtype=np.float32)
     
     
 def read_entire_gps_dataset(file_len_secs, gps_hz, raw_dir, gps_pitch_offset, gps_roll_offset, leapsecs, scrub='no'):
@@ -711,7 +710,7 @@ def read_entire_gps_dataset(file_len_secs, gps_hz, raw_dir, gps_pitch_offset, gp
     
     GPS_file_list = 'gps_file_list.txt'
     search_str = 'gps*'
-    create_a_file_list(GPS_file_list,search_str,raw_dir)
+    create_a_file_list(GPS_file_list, search_str, raw_dir)
     
     with open(GPS_file_list) as GPS_list_fobj:
         all_GPS_files = GPS_list_fobj.readlines()
@@ -719,7 +718,7 @@ def read_entire_gps_dataset(file_len_secs, gps_hz, raw_dir, gps_pitch_offset, gp
     
     j = 0
     est_gps_recs = int((file_len_secs * (gps_hz+1))*nGPS_files) # add a little buffer
-    gps_data_all = np.zeros(est_gps_recs,dtype=gps_struct)
+    gps_data_all = np.zeros(est_gps_recs, dtype=gps_struct)
     for GPS_file in all_GPS_files:
         gps_data_1file = read_in_gps_data(GPS_file.strip(), file_len_secs, gps_hz, gps_pitch_offset, gps_roll_offset)
         try:
@@ -729,14 +728,14 @@ def read_entire_gps_dataset(file_len_secs, gps_hz, raw_dir, gps_pitch_offset, gp
         except AttributeError:
             continue
         j += gps_data_1file.shape[0]      
-    gps_data_all = gps_data_all[0:j] # trim the fat
+    gps_data_all = gps_data_all[0:j]  # trim the fat
     
-    epoch = DT.datetime.strptime("1980-01-06 00:00:00","%Y-%m-%d %H:%M:%S")
+    epoch = DT.datetime.strptime("1980-01-06 00:00:00", "%Y-%m-%d %H:%M:%S")
     gps_UTC = np.zeros(gps_data_all.shape[0],dtype=DT.datetime)
-    for j in range(0,gps_data_all.shape[0]):
+    for j in range(0, gps_data_all.shape[0]):
         try:
             gps_UTC[j] = weeksecondstoutc(gps_data_all['GpsWeek'][j]*1.0,
-                gps_data_all['Gps_sec'][j],leapsecs)
+                                          gps_data_all['Gps_sec'][j], leapsecs)
         except:
             gps_UTC[j] = epoch
             
@@ -744,8 +743,8 @@ def read_entire_gps_dataset(file_len_secs, gps_hz, raw_dir, gps_pitch_offset, gp
     # Try to do this in an automated way that doesn't require more
     # initialization file variables.
     if scrub == 'scrub':
-        tlim0 = weeksecondstoutc(np.median(gps_data_all['GpsWeek'])-1.0,0.0,leapsecs)      
-        tlim1 = weeksecondstoutc(np.median(gps_data_all['GpsWeek'])+1.0,0.0,leapsecs)
+        tlim0 = weeksecondstoutc(np.median(gps_data_all['GpsWeek'])-1.0, 0.0, leapsecs)
+        tlim1 = weeksecondstoutc(np.median(gps_data_all['GpsWeek'])+1.0, 0.0, leapsecs)
         mask0 = gps_UTC >= tlim0
         t_stage0 = gps_UTC[mask0]
         gps_data_all = gps_data_all[mask0]
@@ -756,7 +755,7 @@ def read_entire_gps_dataset(file_len_secs, gps_hz, raw_dir, gps_pitch_offset, gp
     return [gps_data_all, gps_UTC] 
     
     
-def read_entire_nav_dataset(search_str,raw_dir,est_nav_recs_1file,secs_btwn_instr_UnixT_and_UTC):
+def read_entire_nav_dataset(search_str, raw_dir, est_nav_recs_1file, secs_btwn_instr_UnixT_and_UTC):
     """ Read in entire nav file dataset (all files) """
     
     # [6/18/18] 
@@ -767,19 +766,20 @@ def read_entire_nav_dataset(search_str,raw_dir,est_nav_recs_1file,secs_btwn_inst
     # calling code's needs.
 
     nav_file_list = 'nav_file_list.txt'
-    create_a_file_list(nav_file_list,search_str,raw_dir)    
+    create_a_file_list(nav_file_list, search_str, raw_dir)
             
     with open(nav_file_list) as nav_list_fobj:
         all_nav_files = nav_list_fobj.readlines()
     nnav_files = len(all_nav_files)
     
     est_nav_recs = est_nav_recs_1file*nnav_files
-    nav_data_all = np.zeros(est_nav_recs,dtype=nav_struct)
+    nav_data_all = np.zeros(est_nav_recs, dtype=nav_struct)
     j = 0
-    for i in range(0,nnav_files):
+    for i in range(0, nnav_files):
         nav_file = all_nav_files[i]
         nav_file = nav_file.strip()
-        nav_data_1file = read_in_nav_data(nav_file, est_nav_recs_1file, DT.timedelta(seconds=secs_btwn_instr_UnixT_and_UTC))
+        nav_data_1file = read_in_nav_data(nav_file, est_nav_recs_1file,
+                                          DT.timedelta(seconds=secs_btwn_instr_UnixT_and_UTC))
         try:
             nav_data_all[j:j+nav_data_1file.shape[0]] = nav_data_1file
         except ValueError:
@@ -790,7 +790,7 @@ def read_entire_nav_dataset(search_str,raw_dir,est_nav_recs_1file,secs_btwn_inst
     return nav_data_all
 
 
-def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict=False):
+def read_in_cls_data(fname, nbins, flt_date, bad_cls_nav_time_value, return_nav_dict=False):
     """ Routine to read in raw data from a single CPL "CLS" file. 
     """
     
@@ -799,7 +799,7 @@ def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict
     # nbins -> Integer # of bins, likely 833.
     # flt_date -> String like this, rep. date of flight: '06dec19'
     # bad_cls_nav_time_value -> datetime.datetime object representing invalid data.
-    #                           Reccomended to set to DT.datetime(1970,1,1,0,0,0).
+    #                           Recommended to set to DT.datetime(1970,1,1,0,0,0).
     # return_nav_dict -> Only known application is for L1A processing.
     
     # OUTPUT:
@@ -830,7 +830,7 @@ def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict
     
     # First, determine what type of CLS file you're reading (ER2, UAV, other??)
     # then get nchans and nbins from the file...
-    samp = np.fromfile(fname,CLS_meta_struct,count=1)
+    samp = np.fromfile(fname, CLS_meta_struct, count=1)
     # See which record size the file is a multiple of: ER2 or UAV
     fsize = os.path.getsize(fname)
     size_check = fsize % ER2_tot_nbytes
@@ -839,13 +839,13 @@ def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict
     else:
         size_type = 'ER2'
     # First, try as ER2-style ....
-    num_nav_fields = len( str( samp['Nav'].view('S'+str(ER2_nav_nbytes).strip()) ).split() )
+    num_nav_fields = len(str(samp['Nav'].view('S'+str(ER2_nav_nbytes).strip())).split())
     if (num_nav_fields < 6) & (size_type == 'UAV'):
         print('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         print("UAV-style CLS file detected!")
         print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n')
         CLS_meta_struct = define_CLS_meta_struct(UAV_nav_nbytes)
-        navSview =  'S'+str(UAV_nav_nbytes).strip()
+        navSview = 'S'+str(UAV_nav_nbytes).strip()
         Nav_delim = ','
         cls_type = 'UAV'
     elif (num_nav_fields >= 6) & (num_nav_fields < 17):
@@ -868,10 +868,10 @@ def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict
     # Next, use that info to form your CLS data structure...
     try:
         # NOTE: number of bins NOT included in CLS data
-        CLS_raw_struct = define_CLS_structure(samp['Header']['NumChannels'][0],nbins,CLS_meta_struct)
-        CLS_decoded_struct = define_CLS_decoded_structure(samp['Header']['NumChannels'][0],nbins)
+        CLS_raw_struct = define_CLS_structure(samp['Header']['NumChannels'][0], nbins, CLS_meta_struct)
+        CLS_decoded_struct = define_CLS_decoded_structure(samp['Header']['NumChannels'][0], nbins)
     except IndexError:
-        print('Size of ingested data: ',samp.shape)
+        print('Size of ingested data: ', samp.shape)
         print('Bad data. Skipping file...')
         if return_nav_dict:
             return None, None
@@ -879,48 +879,49 @@ def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict
             return None
     
     # Read in all data from the file at once
-    CLS_data = np.fromfile( fname, CLS_raw_struct, count=-1 )
+    CLS_data = np.fromfile(fname, CLS_raw_struct, count=-1)
     
     # Decode the character bytes into usable data types
-    CLS_decoded_data = np.zeros(CLS_data.shape[0],dtype=CLS_decoded_struct)
-    signs = { 'S':-1.0, 'N':1.0, 'W':-1.0, 'E':1.0, '-':-1.0, '+':1.0 } 
-    Nav_dict = {} # Dictionary to store times as keys to Nav records
-    UTC_Time_last_rec = DT.datetime(1990,1,1,12,0,0)
-    for i in range(0,CLS_data.shape[0]):
+    CLS_decoded_data = np.zeros(CLS_data.shape[0], dtype=CLS_decoded_struct)
+    signs = {'S': -1.0, 'N': 1.0, 'W': -1.0, 'E': 1.0, '-': -1.0, '+': 1.0}
+    Nav_dict = {}  # Dictionary to store times as keys to Nav records
+    UTC_Time_last_rec = DT.datetime(1990, 1, 1, 12, 0, 0)
+    for i in range(0, CLS_data.shape[0]):
 
         # Conversions for the Header portion of CLS record...
         try:
-            temp_string = str(CLS_data['meta']['Header']['ExactTime'][i,:].view('S27'))
-            CLS_decoded_data['meta']['Header']['ExactTime'][i] = DT.datetime.strptime(flt_date[5:7]+temp_string[3:28],'%yDATE__%j__TIME__%H:%M:%S')
+            temp_string = str(CLS_data['meta']['Header']['ExactTime'][i, :].view('S27'))
+            CLS_decoded_data['meta']['Header']['ExactTime'][i] = \
+                DT.datetime.strptime(flt_date[5:7]+temp_string[3:28], '%yDATE__%j__TIME__%H:%M:%S')
             # As of 4/4/18, none of the other raw header parameters need to be decoded.
             CLS_decoded_data['meta']['Header']['RecordNumber'][i] = CLS_data['meta']['Header']['RecordNumber'][i]
             CLS_decoded_data['meta']['Header']['NumChannels'][i] = CLS_data['meta']['Header']['NumChannels'][i]
             CLS_decoded_data['meta']['Header']['Resolution'][i] = CLS_data['meta']['Header']['Resolution'][i]
-            CLS_decoded_data['meta']['Header']['DetectorSequence'][i,:] = CLS_data['meta']['Header']['DetectorSequence'][i,:]
+            CLS_decoded_data['meta']['Header']['DetectorSequence'][i, :] = CLS_data['meta']['Header']['DetectorSequence'][i, :]
             CLS_decoded_data['meta']['Header']['NumberT_Probes'][i] = CLS_data['meta']['Header']['NumberT_Probes'][i]
             CLS_decoded_data['meta']['Header']['NumberV_Probes'][i] = CLS_data['meta']['Header']['NumberV_Probes'][i]
-            CLS_decoded_data['meta']['Header']['Reserved'][i,:] = CLS_data['meta']['Header']['Reserved'][i,:]
+            CLS_decoded_data['meta']['Header']['Reserved'][i, :] = CLS_data['meta']['Header']['Reserved'][i, :]
         except:
-            print("UNUSABLE RECORD ",i,fname)
+            print("UNUSABLE RECORD ", i, fname)
             print(temp_string[3:28])	    
             CLS_decoded_data['meta']['Header']['ExactTime'][i] = bad_cls_nav_time_value
 
         # Conversions for Nav portion of CLS record...
-        Nav_fields = str( CLS_data['meta']['Nav'][i].view(navSview) ).split(Nav_delim)
+        Nav_fields = str(CLS_data['meta']['Nav'][i].view(navSview)).split(Nav_delim)
 
         if cls_type == 'ER2':
-            #WRITE CODE TO PARSE ER2-STYLE NAV RECORD
-            CLS_decoded_data['meta']['Nav'][i] = decode_er2_nav_string(Nav_fields,signs,flt_date,bad_cls_nav_time_value)
+            # WRITE CODE TO PARSE ER2-STYLE NAV RECORD
+            CLS_decoded_data['meta']['Nav'][i] = decode_er2_nav_string(Nav_fields, signs, flt_date, bad_cls_nav_time_value)
         elif cls_type == 'UAV':
-            CLS_decoded_data['meta']['Nav'][i] = decode_uav_nav_string(Nav_fields,flt_date,bad_cls_nav_time_value)
+            CLS_decoded_data['meta']['Nav'][i] = decode_uav_nav_string(Nav_fields, flt_date, bad_cls_nav_time_value)
         else:
-            #Don't split. We're going to decode by byte position
-            Nav_fields = str( CLS_data['meta']['Nav'][i].view(navSview) )
-            CLS_decoded_data['meta']['Nav'][i] = decode_er2_like_wb57_nav_string(Nav_fields,signs)
-        
-        
+            # Don't split. We're going to decode by byte position
+            Nav_fields = str(CLS_data['meta']['Nav'][i].view(navSview) )
+            CLS_decoded_data['meta']['Nav'][i] = decode_er2_like_wb57_nav_string(Nav_fields, signs)
+
         if CLS_decoded_data['meta']['Nav']['UTC_Time'][i] != UTC_Time_last_rec: 
-            Nav_dict[CLS_decoded_data['meta']['Nav']['UTC_Time'][i].strftime('%y-%j:%H:%M:%S')] = CLS_decoded_data['meta']['Nav'][i]
+            Nav_dict[CLS_decoded_data['meta']['Nav']['UTC_Time'][i].strftime('%y-%j:%H:%M:%S')] = \
+                CLS_decoded_data['meta']['Nav'][i]
         UTC_Time_last_rec = CLS_decoded_data['meta']['Nav']['UTC_Time'][i]
    
     # Actual photon count data can just be copied directly from "raw" to "decoded."
@@ -933,7 +934,8 @@ def read_in_cls_data(fname,nbins,flt_date,bad_cls_nav_time_value,return_nav_dict
     else:
         return CLS_decoded_data
 
-def remove_status_packets_from_data_edges(in_meta,bad_cls_nav_time_value,drift_plot=False):
+
+def remove_status_packets_from_data_edges(in_meta, bad_cls_nav_time_value, drift_plot=False):
     """ Function to eliminate status records from flight data.
         If first records of first file are invalid, this code 
         will handle that too, in the same manner.
@@ -951,9 +953,9 @@ def remove_status_packets_from_data_edges(in_meta,bad_cls_nav_time_value,drift_p
     # non-consecutively. In other words, valids times don't jump backward/forwards
     # in time.
 
-    u, ui, ncounts = np.unique(in_meta['Header']['ExactTime'],return_index=True,return_counts=True)
-    u_uns = [in_meta['Header']['ExactTime'][indx] for indx in sorted(ui)] #undo sort the unique values by their value
-    u_uns = np.array(u_uns) # convert from list to array
+    u, ui, ncounts = np.unique(in_meta['Header']['ExactTime'], return_index=True, return_counts=True)
+    u_uns = [in_meta['Header']['ExactTime'][indx] for indx in sorted(ui)]  # undo sort the unique values by their value
+    u_uns = np.array(u_uns)  # convert from list to array
     sort_indx_key = np.argsort(ui)
     ncounts_uns = ncounts[sort_indx_key]
     ui_uns = ui[sort_indx_key]
@@ -961,10 +963,10 @@ def remove_status_packets_from_data_edges(in_meta,bad_cls_nav_time_value,drift_p
     # Compute time delta between records
     delts = delta_datetime_vector(u_uns)
 
-    # Get rid of outlier times at beginned/end that result from sending of status profile
+    # Get rid of outlier times at beginning/end that result from sending of status profile
     # that occurs when laser is not firing.
-    skip_first=0
-    skip_last=0
+    skip_first = 0
+    skip_last = 0
     i = 0
     j = delts.shape[0]
     while (abs(delts[i+1]) > 3) or (u_uns[i] == bad_cls_nav_time_value):
@@ -978,7 +980,7 @@ def remove_status_packets_from_data_edges(in_meta,bad_cls_nav_time_value,drift_p
     # Used for debugging
     if drift_plot:
         from matplotlib import pyplot as plt
-        #first/last rec with ncounts >= 10
+        # first/last rec with ncounts >= 10
         first_rec_time = u[ncounts >= 10][0]
         last_rec_time = u[ncounts >= 10][-1]
         num_before = ncounts[0+skip_first]
@@ -991,35 +993,34 @@ def remove_status_packets_from_data_edges(in_meta,bad_cls_nav_time_value,drift_p
         tott = (ed - st).total_seconds()
         pred_intrr = int(tott * 10)
         pred_recs = int(pred_intrr + computed_slop)
-        pred_time = np.zeros(pred_intrr,dtype=DT.datetime)
-        for i in range(0,pred_intrr,10): pred_time[i:i+10] = st + DT.timedelta(seconds=i/10)
-        ptf = np.zeros(pred_recs,dtype=DT.datetime) #predicted time final
+        pred_time = np.zeros(pred_intrr, dtype=DT.datetime)
+        for i in range(0, pred_intrr, 10): pred_time[i:i+10] = st + DT.timedelta(seconds=i/10)
+        ptf = np.zeros(pred_recs, dtype=DT.datetime)  # predicted time final
         ptf[0:num_before] = in_meta['UTC_Time'][before_rec]
         ptf[-1-num_after:] = in_meta['UTC_Time'][after_rec]
         ptf[num_before:-1*num_after] = pred_time
-        ptford = np.arange(0,ptf.shape[0])
-        at = in_meta['UTC_Time'][before_rec:after_rec] # actual time in data
-        atord = np.arange(0,at.shape[0])
-        plt.plot_date(ptf,ptford,marker='o')
-        plt.plot_date(at,atord,marker='x')
+        ptford = np.arange(0, ptf.shape[0])
+        at = in_meta['UTC_Time'][before_rec:after_rec]  # actual time in data
+        atord = np.arange(0, at.shape[0])
+        plt.plot_date(ptf, ptford, marker='o')
+        plt.plot_date(at, atord, marker='x')
         ax = plt.gca()
-        ax.set_xlim([st-DT.timedelta(seconds=5),ed+DT.timedelta(seconds=5)])
+        ax.set_xlim([st-DT.timedelta(seconds=5), ed+DT.timedelta(seconds=5)])
         plt.show()
         if ptf.shape[0] < at.shape[0]:
             diff_at_pt = ptf - at[:ptf.shape[0]]
         else:
             diff_at_pt = at - ptf[0:at.shape[0]]
-        ds = np.zeros(diff_at_pt.shape,dtype=np.float64)
-        for i in range(0,ds.shape[0]): ds[i] = diff_at_pt[i].total_seconds()
-        plt.plot(ds,marker='x')
+        ds = np.zeros(diff_at_pt.shape, dtype=np.float64)
+        for i in range(0, ds.shape[0]): ds[i] = diff_at_pt[i].total_seconds()
+        plt.plot(ds, marker='x')
         plt.title('Difference between expected and actual times')    
         plt.show()
         pdb.set_trace()
-    
     return [skip_first, skip_last]    
 
 
-def read_entire_cls_dataset(file_len_recs,raw_dir,nbins,flt_date,bad_cls_nav_time_value,Fcontrol=None):
+def read_entire_cls_dataset(file_len_recs, raw_dir, nbins, flt_date, bad_cls_nav_time_value, Fcontrol=None):
     """ This function reads in all the CLS data from the entire flight.
     """
     
@@ -1035,7 +1036,7 @@ def read_entire_cls_dataset(file_len_recs,raw_dir,nbins,flt_date,bad_cls_nav_tim
 
     cls_file_list = 'cls_file_list_for_nav_only.txt'
     search_str = '*.cls'
-    create_a_file_list(cls_file_list,search_str,raw_dir)    
+    create_a_file_list(cls_file_list, search_str, raw_dir)
             
     with open(cls_file_list) as cls_list_fobj:
         all_cls_files = cls_list_fobj.readlines()
@@ -1050,10 +1051,10 @@ def read_entire_cls_dataset(file_len_recs,raw_dir,nbins,flt_date,bad_cls_nav_tim
         Fnumbers = Fcontrol.sel_file_list
     else:
         ncls_files = len(all_cls_files)
-        Fnumbers = [x for x in range(0,ncls_files)]
+        Fnumbers = [x for x in range(0, ncls_files)]
     
     est_cls_recs = file_len_recs*ncls_files
-    file_indx = np.zeros((ncls_files,2),dtype=np.uint32)
+    file_indx = np.zeros((ncls_files, 2), dtype=np.uint32)
     j = 0
     k = 0
     for i in Fnumbers:
@@ -1062,10 +1063,10 @@ def read_entire_cls_dataset(file_len_recs,raw_dir,nbins,flt_date,bad_cls_nav_tim
             continue		
         cls_file = all_cls_files[k]
         cls_file = cls_file.strip()
-        cls_data_1file, Nav_dict = read_in_cls_data(cls_file,nbins,flt_date,bad_cls_nav_time_value,True)
+        cls_data_1file, Nav_dict = read_in_cls_data(cls_file, nbins, flt_date, bad_cls_nav_time_value, True)
         if j == 0:
              max_chan = cls_data_1file['meta']['Header']['NumChannels'][0]
-             cls_data_all = np.zeros(est_cls_recs,dtype=define_CLS_decoded_structure(max_chan,nbins))
+             cls_data_all = np.zeros(est_cls_recs, dtype=define_CLS_decoded_structure(max_chan, nbins))
         try:
             cls_data_all[j:j+cls_data_1file.shape[0]] = cls_data_1file
         except:
@@ -1073,9 +1074,10 @@ def read_entire_cls_dataset(file_len_recs,raw_dir,nbins,flt_date,bad_cls_nav_tim
         j += cls_data_1file.shape[0]
         k += 1
         print('Finshed ingesting file: '+cls_file)
-    cls_data_all = cls_data_all[0:j] # trim the fat
+    cls_data_all = cls_data_all[0:j]  # trim the fat
 
-    return cls_data_all # NOTE: It is decoded.
+    return cls_data_all  # NOTE: It is decoded.
+
 
 def read_entire_cls_nav_dataset():
     """ This function reads in ONLY the Nav (256-byte) record from the
@@ -1084,92 +1086,91 @@ def read_entire_cls_nav_dataset():
 
     cls_file_list = 'cls_file_list_for_nav_only.txt'
     search_str = '*.cls'
-    create_a_file_list(cls_file_list,search_str)    
+    create_a_file_list(cls_file_list, search_str)
             
     with open(cls_file_list) as cls_list_fobj:
         all_cls_files = cls_list_fobj.readlines()
     ncls_files = len(all_cls_files)
     
     est_nav_recs = file_len_recs*ncls_files
-    nav_data_all = np.zeros(est_nav_recs,dtype=CLS_decoded_nav_struct)
-    file_indx = np.zeros((ncls_files,2),dtype=np.uint32)
+    nav_data_all = np.zeros(est_nav_recs, dtype=CLS_decoded_nav_struct)
+    file_indx = np.zeros((ncls_files, 2), dtype=np.uint32)
     j = 0
     tot_Nav_dict = {}
-    for i in range(0,ncls_files):
+    for i in range(0, ncls_files):
         cls_file = all_cls_files[i]
         cls_file = cls_file.strip()
-        cls_data_1file, Nav_dict = read_in_cls_data(cls_file,True)
+        cls_data_1file, Nav_dict = read_in_cls_data(cls_file, True)
         tot_Nav_dict.update(Nav_dict)
         try:
             nav_data_all[j:j+cls_data_1file.shape[0]] = cls_data_1file['meta']['Nav']
-            file_indx[i,0] = j
-            file_indx[i,1] = j+cls_data_1file.shape[0]
+            file_indx[i, 0] = j
+            file_indx[i, 1] = j+cls_data_1file.shape[0]
         except:
             pdb.set_trace()
         j += cls_data_1file.shape[0]
         print('Finshed ingesting file: '+cls_file+' for Nav interp purposes!')
-    nav_data_all = nav_data_all[0:j] # trim the fat
-
+    nav_data_all = nav_data_all[0:j]  # trim the fat
     return nav_data_all
 
 
-def read_entire_cls_meta_dataset(raw_dir,file_len_recs,nbins,flt_date,bad_cls_nav_time_value):
+def read_entire_cls_meta_dataset(raw_dir, file_len_recs, nbins, flt_date, bad_cls_nav_time_value):
     """ This function reads in ONLY the Nav (256-byte) record from the
         CPL CLS files.
     """
 
     cls_file_list = 'cls_file_list_for_nav_only.txt'
     search_str = '*.cls'
-    create_a_file_list(cls_file_list,search_str,raw_dir)    
+    create_a_file_list(cls_file_list, search_str, raw_dir)
             
     with open(cls_file_list) as cls_list_fobj:
         all_cls_files = cls_list_fobj.readlines()
     ncls_files = len(all_cls_files)
     
     est_nav_recs = file_len_recs*ncls_files
-    meta_data_all = np.zeros(est_nav_recs,dtype=CLS_decoded_meta_struct)
-    file_indx = np.zeros((ncls_files,2),dtype=np.int32)
+    meta_data_all = np.zeros(est_nav_recs, dtype=CLS_decoded_meta_struct)
+    file_indx = np.zeros((ncls_files, 2), dtype=np.int32)
     j = 0
     tot_Nav_dict = {}
-    for i in range(0,ncls_files):
+    for i in range(0, ncls_files):
         cls_file = all_cls_files[i]
         cls_file = cls_file.strip()
-        cls_data_1file, Nav_dict = read_in_cls_data(cls_file,nbins,flt_date,bad_cls_nav_time_value,True)
+        cls_data_1file, Nav_dict = read_in_cls_data(cls_file, nbins, flt_date, bad_cls_nav_time_value, True)
         if cls_data_1file is None: continue
         tot_Nav_dict.update(Nav_dict)
         try:
             meta_data_all[j:j+cls_data_1file.shape[0]] = cls_data_1file['meta']
-            file_indx[i,0] = j
-            file_indx[i,1] = j+cls_data_1file.shape[0]
+            file_indx[i, 0] = j
+            file_indx[i, 1] = j+cls_data_1file.shape[0]
         except:
             pdb.set_trace()
         j += cls_data_1file.shape[0]
         print('Finshed ingesting file: '+cls_file+' for meta purposes!')
-    meta_data_all = meta_data_all[0:j] # trim the fat
+    meta_data_all = meta_data_all[0:j]  # trim the fat
 
-    skip_list = remove_status_packets_from_data_edges(meta_data_all,bad_cls_nav_time_value)
+    skip_list = remove_status_packets_from_data_edges(meta_data_all, bad_cls_nav_time_value)
     meta_data_all = meta_data_all[skip_list[0]:meta_data_all.shape[0]-skip_list[1]]
     file_indx = file_indx - skip_list[0]
-    file_indx[0,0] = 0    
+    file_indx[0, 0] = 0
 
     # Whittle down the number of files if necessary. This would occur if the values in skip_list
     # are > the number of records in some of the files at the edge.
     beg_file_indx = 0
     end_file_indx = ncls_files
     fi = 0
-    while file_indx[fi,1] <= 0:
+    while file_indx[fi, 1] <= 0:
         if fi == (ncls_files-2):
             print("Too many data are being removed. Investigate here.")
             pdb.set_trace()
         fi += 1
-        if file_indx[fi,0] > 0:
+        if file_indx[fi, 0] > 0:
             print("Something odd is going on. A gap?")
             pdb.set_trace()
-        if file_indx[fi,0] < 0:
-            skip_list[0] = abs(file_indx[fi,0])
+        if file_indx[fi, 0] < 0:
+            skip_list[0] = abs(file_indx[fi, 0])
         else:
             skip_list[0] = 0
-        file_indx[fi,0] = 0
+        file_indx[fi, 0] = 0
     if fi > 0: 
         # Don't shrink array. "beg_file_indx" will tell L1A main what to do.
         beg_file_indx = fi
@@ -1179,21 +1180,21 @@ def read_entire_cls_meta_dataset(raw_dir,file_len_recs,nbins,flt_date,bad_cls_na
         print(attention_bar)
     interim_ncls_files = file_indx.shape[0]
     fi = interim_ncls_files - 1
-    file_indx[fi,1] = file_indx[fi,1] - skip_list[1]
-    while file_indx[fi,1] < file_indx[fi,0]:
-        leftover = file_indx[fi,0] - file_indx[fi,1]
+    file_indx[fi, 1] = file_indx[fi, 1] - skip_list[1]
+    while file_indx[fi, 1] < file_indx[fi, 0]:
+        leftover = file_indx[fi, 0] - file_indx[fi, 1]
         fi -= 1
-        file_indx[fi,1] = file_indx[fi,1] - leftover
+        file_indx[fi, 1] = file_indx[fi, 1] - leftover
         skip_list[1] = leftover
     if fi < (interim_ncls_files - 1): 
-        file_indx = file_indx[:fi+1,:]
+        file_indx = file_indx[:fi+1, :]
         end_file_indx = fi+1
         print(attention_bar)
         print("Insufficient usable records are in the last ",
               ncls_files - end_file_indx, " file(s).")
         print(attention_bar)
 
-    usable_file_range = [beg_file_indx,end_file_indx]
+    usable_file_range = [beg_file_indx, end_file_indx]
     return meta_data_all, file_indx, skip_list, usable_file_range
 
 
@@ -1213,8 +1214,8 @@ def read_in_overlap_table(fname):
     
     data_list = []
     
-    with open(fname,'rb') as f_obj:
-        for block in iter(partial(f_obj.read, 4),''):
+    with open(fname, 'rb') as f_obj:
+        for block in iter(partial(f_obj.read, 4), ''):
             try:
                 data_list.append(xdrlib.Unpacker(block).unpack_float())
             except EOFError:
@@ -1222,7 +1223,8 @@ def read_in_overlap_table(fname):
     print("Done reading in overlap table:\n"+fname)
     
     # Convert list to array then return array
-    return np.asarray(data_list,dtype=np.float32)
+    return np.asarray(data_list, dtype=np.float32)
+
 
 def read_in_esrl_raob(infile):
     """ Code to read in raobs, in the format of those archived on the 
@@ -1243,14 +1245,14 @@ def read_in_esrl_raob(infile):
     with open(infile) as f_obj:
         line = f_obj.readline()
         while line:
-            line_split = line.split() # split on whitespace, no arg needed
+            line_split = line.split()  # split on whitespace, no arg needed
             try:
                 data_list.append([int(s) for s in line_split])
             except:
-                data_list = [] # reset
+                data_list = []  # reset
             line = f_obj.readline()                
     
-    raob = np.zeros(len(data_list),dtype=raob_struct)
+    raob = np.zeros(len(data_list), dtype=raob_struct)
     i = 0
     for item in data_list:
         raob['ltp'][i] = item[0]
@@ -1264,6 +1266,7 @@ def read_in_esrl_raob(infile):
         
     return raob
 
+
 def read_in_housekeeping_data_r(fname):
     """ This "_r" version operates on Roscoe files.
        
@@ -1272,7 +1275,7 @@ def read_in_housekeeping_data_r(fname):
         are provided from imported modules.
     """
     
-    return( np.fromfile( fname, hk_struct_r, count=-1 ) )
+    return np.fromfile(fname, hk_struct_r, count=-1)
     
     
 def read_in_mcs_data_r(fname):
@@ -1283,20 +1286,20 @@ def read_in_mcs_data_r(fname):
     """
     
     # First, get nchans and nbins from the file...
-    samp = np.fromfile(fname,MCS_meta_struct_r,count=1)
+    samp = np.fromfile(fname, MCS_meta_struct_r, count=1)
     
     # Next, use that info to form your MSC data structure...
     try:
-        MCS_struct = define_MSC_structure_r(samp['nchans'][0],samp['nbins'][0])
+        MCS_struct = define_MSC_structure_r(samp['nchans'][0], samp['nbins'][0])
     except IndexError:
-        print('Size of ingested data: ',samp.shape)
+        print('Size of ingested data: ', samp.shape)
         print('Bad data. Skipping file...')
         return None
     
     # Finally, read in all data from the file at once
-    MCS_data = np.fromfile( fname, MCS_struct, count=-1 )
+    MCS_data = np.fromfile(fname, MCS_struct, count=-1)
     
-    return(MCS_data)    
+    return MCS_data
 
 
 def read_selected_mcs_files_r(MCS_file_list, rep_rate, file_len_secs, Fcontrol=None):
@@ -1304,11 +1307,10 @@ def read_selected_mcs_files_r(MCS_file_list, rep_rate, file_len_secs, Fcontrol=N
        Takes in a list of files to read as its input and returns a 
        numpy array "MCS_data" which is structured as "MCS_struct_r."
     """
-	
-	# INPUTS:
-	# MSC_file_list: List of MCS files to read
-	# Fcontrol:      List controlling which MCS files are read. Optional.
-    
+    # INPUTS:
+    # MSC_file_list: List of MCS files to read
+    # Fcontrol:      List controlling which MCS files are read. Optional.
+
     with open(MCS_file_list) as MCS_list_fobj:
         all_MCS_files = MCS_list_fobj.readlines()
     nMCS_files = len(all_MCS_files)
@@ -1320,10 +1322,10 @@ def read_selected_mcs_files_r(MCS_file_list, rep_rate, file_len_secs, Fcontrol=N
     # Read in the MCS (science) data
 
     first_read = 1
-    r=0
-    for i in range(0,nMCS_files):
+    r = 0
+    for i in range(0, nMCS_files):
         if i not in Fcontrol: continue
-        print("File # ====== ",i)
+        print("File # ====== ", i)
         MCS_file = all_MCS_files[i]
         MCS_file = MCS_file.rstrip()
         MCS_data_1file = read_in_mcs_data_r(MCS_file)
@@ -1331,7 +1333,7 @@ def read_selected_mcs_files_r(MCS_file_list, rep_rate, file_len_secs, Fcontrol=N
             print('Skipping this file. Potentially corrupt data')
             continue
         # As of 10/8/19, no method to filter out bad recs for Roscoe.            
-        #skip_whole_file = filter_out_bad_recs(MCS_data_1file)
+        # skip_whole_file = filter_out_bad_recs(MCS_data_1file)
         skip_whole_file = 0
         if skip_whole_file == 1:
             print('Skipping this file...') 
@@ -1344,12 +1346,12 @@ def read_selected_mcs_files_r(MCS_file_list, rep_rate, file_len_secs, Fcontrol=N
             nshots = MCS_data_1file['meta']['nshots'][0]
             # declare data structure to hold all data. estimate tot # recs first
             tot_est_recs = int(rep_rate/nshots)*file_len_secs*n_files
-            MCS_struct_r = define_MSC_structure_r(nc,nb)
+            MCS_struct_r = define_MSC_structure_r(nc, nb)
             MCS_data = np.zeros(tot_est_recs, dtype=MCS_struct_r)
         nr_1file = MCS_data_1file.shape[0]
         MCS_data[r:r+nr_1file] = MCS_data_1file
         r += nr_1file   
-        #NOTE: You could put conditional break
+        # NOTE: You could put conditional break
         #      statement in this loop to read-in
         #      data from time segment only. 
     
@@ -1370,11 +1372,11 @@ def read_selected_mcs_files(MCS_file_list, rep_rate, file_len_secs, Fcontrol=Non
        Takes in a list of files to read as its input and returns a 
        numpy array "MCS_data" which is structured as "MCS_struct."
     """
-	
-	# INPUTS:
-	# MSC_file_list: List of MCS files to read
-	# Fcontrol:      List controlling which MCS files are read. Optional.	
-    
+
+    # INPUTS:
+    # MSC_file_list: List of MCS files to read
+    # Fcontrol:      List controlling which MCS files are read. Optional.
+
     with open(MCS_file_list) as MCS_list_fobj:
         all_MCS_files = MCS_list_fobj.readlines()
     nMCS_files = len(all_MCS_files)
@@ -1386,10 +1388,10 @@ def read_selected_mcs_files(MCS_file_list, rep_rate, file_len_secs, Fcontrol=Non
     # Read in the MCS (science) data
 
     first_read = 1
-    r=0
-    for i in range(0,nMCS_files):
+    r = 0
+    for i in range(0, nMCS_files):
         if i not in Fcontrol: continue
-        print("File # ====== ",i)
+        print("File # ====== ", i)
         MCS_file = all_MCS_files[i]
         MCS_file = MCS_file.rstrip()
         MCS_data_1file = read_in_raw_data(MCS_file)
@@ -1406,16 +1408,16 @@ def read_selected_mcs_files(MCS_file_list, rep_rate, file_len_secs, Fcontrol=Non
             nshots = MCS_data_1file['meta']['nshots'][0]
             vrT = MCS_data_1file['meta']['binwid'][0]
             vrZ = (vrT * c) / 2.0
-            data_params = [nc,nb,nshots,vrT,vrZ] #store in list
+            data_params = [nc, nb, nshots, vrT, vrZ]  # store in list
             # declare data structure to hold all data. estimate tot # recs first
-            n_files = min(nMCS_files,len(Fcontrol.sel_file_list))
+            n_files = min(nMCS_files, len(Fcontrol.sel_file_list))
             tot_est_recs = int(rep_rate/nshots)*file_len_secs*n_files
-            MCS_struct = define_MSC_structure(nc,nb)
+            MCS_struct = define_MSC_structure(nc, nb)
             MCS_data = np.zeros(tot_est_recs, dtype=MCS_struct)
         nr_1file = MCS_data_1file.shape[0]
         MCS_data[r:r+nr_1file] = MCS_data_1file
         r += nr_1file   
-        #NOTE: You could put conditional break
+        # NOTE: You could put conditional break
         #      statement in this loop to read-in
         #      data from time segment only. 
     
@@ -1430,16 +1432,17 @@ def read_selected_mcs_files(MCS_file_list, rep_rate, file_len_secs, Fcontrol=Non
     print('All MCS data are loaded.')    
     return MCS_data
 
+
 def read_acls_std_atm_file(std_atm_file):
     """ Read in data from those classic ACLS standard atmosphere files
         that are used for CPL.
     """
 
-    with open(std_atm_file,'r') as f_obj:
+    with open(std_atm_file, 'r') as f_obj:
         Ray_data = f_obj.readlines()
 
     dz = 29.98
-    sratm = 8.0*np.pi/3.0 # molecular lidar ratio
+    sratm = 8.0*np.pi/3.0  # molecular lidar ratio
     Bray_alt = []
     Bray355 = []
     Bray532 = []
@@ -1463,13 +1466,13 @@ def read_acls_std_atm_file(std_atm_file):
     odm355 = - 0.5 * np.log(1.0)
     odm532 = - 0.5 * np.log(1.0)
     odm1064 = - 0.5 * np.log(1.0)
-    for j in range(0,Bray355.shape[0]):
+    for j in range(0, Bray355.shape[0]):
         odm355 = odm355 + Bray355[j] * sratm * dz/1e3
         odm532 = odm532 + Bray532[j] * sratm * dz/1e3
         odm1064 = odm1064 + Bray1064[j] * sratm * dz/1e3
-        mtsq_slant355[j] = (np.exp(-2.0*odm355))#**(1.0/np.cos(ONA_samp))
-        mtsq_slant532[j] = (np.exp(-2.0*odm532))#**(1.0/np.cos(ONA_samp))
-        mtsq_slant1064[j] = (np.exp(-2.0*odm1064))#**(1.0/np.cos(ONA_samp))
+        mtsq_slant355[j] = (np.exp(-2.0*odm355))  # **(1.0/np.cos(ONA_samp))
+        mtsq_slant532[j] = (np.exp(-2.0*odm532))  # **(1.0/np.cos(ONA_samp))
+        mtsq_slant1064[j] = (np.exp(-2.0*odm1064))  # **(1.0/np.cos(ONA_samp))
     AMB355 = Bray355 * mtsq_slant355 
     AMB532 = Bray532 * mtsq_slant532
     AMB1064 = Bray1064 * mtsq_slant1064
@@ -1485,7 +1488,7 @@ def read_in_cats_l0_data(cats_l0_fname, nchans, nbins):
     cats_l0_structure = define_CATS_L0_struct(nchans, nbins)
     
     l0_data = np.fromfile(cats_l0_fname, dtype=cats_l0_structure)
-    l0_data['chan'] = np.bitwise_and(l0_data['chan'], 32767) # remove parity bit
+    l0_data['chan'] = np.bitwise_and(l0_data['chan'], 32767)  # remove parity bit
     
     return l0_data
-     
+

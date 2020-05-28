@@ -14,15 +14,15 @@ search_str = '*dataup*.data'
 EM_file_tag = 'datadown' # As of 12/17/19, good EMs only in "down" files. Set to 'datadown'
 
 # ******** SET THE TIME RANGE BOUNDARIES FOR DATA PROCESSING ********
-process_start = DT.datetime(2019,10,23,16,17,31) #yr,mon,dy,hr,min,sec
-process_end   = DT.datetime(2020,12,7,21,50,0)
+process_start = DT.datetime(2019, 10, 23, 16, 17, 31)  # yr,mon,dy,hr,min,sec
+process_end   = DT.datetime(2020, 12, 7, 21, 50, 0)
 
 # ******** DEFINE CONSTANTS & DATA PARAMS ********
 # Speed of light in meters per second
 c = const.c
-pi =const.pi
+pi = const.pi
 # Unix Time epoch
-UnixT_epoch = DT.datetime(1970,1,1)
+UnixT_epoch = DT.datetime(1970, 1, 1)
 # The number of leap seconds since 1980-01-06 00:00:00
 leapsecs = 16
 # Each MCS data file should contain 5 minutes of data
@@ -35,13 +35,13 @@ bg_ed_alt = -1500.0
 # The bin resolution in the fixed frame (m)
 vrZ_ff = 30.0
 # List containing top and bottom altitudes (m) of the fixed frame
-ff_bot_alt,ff_top_alt = [-15e3,22.005e3]
+ff_bot_alt, ff_top_alt = [-15e3, 22.005e3]
 # The number of wavelengths
 nwl = 2
 # Which channels #'s are which wavelengths? (0=355,1=532,2=1064) OR (0=355,1=1064)
 wl_map = [1, 1, 0, 0]
 # Create a list where index # of WL corresponds to string name of WL
-wl_str = ['355','1064']
+wl_str = ['355', '1064']
 # Minimum GPS week value. All < than are filtered out.
 minweek = 1000
 # Housekeeping record size in bytes
@@ -58,20 +58,19 @@ est_nav_recs_1file = 5*60*10 + 30
 MCS_hz = 10.0
 # IWG1 records per second. Please make it a float!
 IWG1_hz = 1.0
-# nav (refering to file type) records per second. (Please make it a float!) 
+# nav (referring to file type) records per second. (Please make it a float!)
 nav_hz = 1.0
-# Set the Polarization Gain ratios for the wavelenghts [532nm, 1064nm]
-PGain = [0.00,0.00]
+# Set the Polarization Gain ratios for the wavelengths [532nm, 1064nm]
+PGain = [0.00, 0.00]
 # Set this to the maximum possible count rate. Don't set > recs in DTT file!
 max_counts = 16000
 # Dead time tables [list]. List in channel order OR ELSE!!!
-DTT_files = ['dttable_camal_chan1_27238-022318.xdr',
-    'dttable_camal_chan2_27243-022318.xdr', 'dttable_camal_chan3_27239-022318.xdr',
-    'dttable_camal_chan4_27242-022318.xdr']
+DTT_files = ['dttable_camal_chan1_27238-022318.xdr', 'dttable_camal_chan2_27243-022318.xdr',
+             'dttable_camal_chan3_27239-022318.xdr', 'dttable_camal_chan4_27242-022318.xdr']
 # Saturation values, per bin per 500 shots. List in detector order.
 saturation_values = [5000.0, 5000.0, 5000.0, 5000.0]    
 # The overlap file to use
-overlap_file = 'OLOnes_Roscoe.xdr' #'olaptable_cpl-ccviceax_comb_iceland12.xdr'      
+overlap_file = 'OLOnes_Roscoe.xdr' # 'olaptable_cpl-ccviceax_comb_iceland12.xdr'
 # The number of seconds needed to convert from the instrument's Unix time
 # to UTC. Typically either 5 hours (cold season) or 4 hours (warm season).
 secs_btwn_instr_UnixT_and_UTC = 0
@@ -81,7 +80,7 @@ nudge = 1.0
 # Set this to 'quick' to just grab the hard-coded time offsets below
 offset_choice = 'quick'
 def_time_offset_UnixT = DT.timedelta(seconds=943.993)
-# Roll and pitch offsets for GPS (degrees). Subtract these from read-in vals.
+# Roll and pitch offsets for GPS (degrees). Subtract these from read-in values.
 gps_roll_offset = 0.033
 gps_pitch_offset = 0.088
 
@@ -108,10 +107,10 @@ CBar_max = 50.0
 CBar_max_NRB = 5e13
 CBar_min = 0.0
 # The order of magnitude of the alt scale (help make round ticks)
-scale_alt_OofM = 1e3 #order of mag.
+scale_alt_OofM = 1e3  # order of magnitude
 # Default vertical range of bins to be plotted in curtain
-minbin=1000
-maxbin=0
+minbin = 1000
+maxbin = 0
 # curtain plot width and height (inches)
 figW = 18
 figL = 10
@@ -121,13 +120,13 @@ pp_figL = 7
 # "Up" or "Down?" Which direction is lidar pointed?
 pointing_dir = "Down"
 # default axes limits for profile plot [xmin,xmax]/[ymin,ymax]
-pp_xax_bounds_raw_counts = [0,100]
-pp_xax_bounds_bgsub_counts = [-15,45]
-pp_xax_bounds_NRB = [-7e12,5e13]
-pp_yax_bounds_bins = [1000,0]
-pp_yax_bounds_alt = [-10e3,20e3]
+pp_xax_bounds_raw_counts = [0, 100]
+pp_xax_bounds_bgsub_counts = [-15, 45]
+pp_xax_bounds_NRB = [-7e12, 5e13]
+pp_yax_bounds_bins = [1000, 0]
+pp_yax_bounds_alt = [-10e3, 20e3]
 # Y-axis bounds of the energy monitor plot
-EMp_yax_bounds = [0,150]
+EMp_yax_bounds = [0, 150]
 # Channel # entries by user cannot be outside this range
 min_chan = 1
 max_chan = 5
@@ -139,7 +138,7 @@ CPpad = 0.1
 hk_y_max = 100
 hk_y_min = -100
 # For actual data processing (not the GUI), nav data source
-Nav_source = 'nav' #'nav' 'gps' or 'iwg1'
+Nav_source = 'nav'  # 'nav' 'gps' or 'iwg1'
 # IWG1 data file
 IWG1_file = "IWG1.08Dec2017-0031.txt"
 # Don't process any data when below this alt (m). Doesn't apply to GUI.
@@ -151,7 +150,7 @@ attention_bar = '\n******************************\n'
 # The number of standard deviations of EM values to keep. Can set negative to keep all.
 Estds = 4
 
-if (os.name != 'nt'): # IF UNIX-BASED MACHINE, DEFINE DIRECTORIES HERE
+if os.name != 'nt':  # IF UNIX-BASED MACHINE, DEFINE DIRECTORIES HERE
 
     # ******** DEFINE ALL DIRECTORIES ********
     # Set the directory of the raw data
@@ -184,9 +183,9 @@ if (os.name != 'nt'): # IF UNIX-BASED MACHINE, DEFINE DIRECTORIES HERE
 
 else:                 # IF WINDOWS-BASED MACHINE, DEFINE DIRECTORIES HERE
 
-	    # ******** DEFINE ALL DIRECTORIES ********
+    # ******** DEFINE ALL DIRECTORIES ********
     # Set the directory of the raw data
-    #raw_dir = 'F:\\CAMAL\\from_datakey\\'+flt_date+'\\'
+    # raw_dir = 'F:\\CAMAL\\from_datakey\\'+flt_date+'\\'
     raw_dir = 'C:\\Users\\pselmer\\Documents\\Roscoe\\data\\'+proj_name+'\\'+flt_date+'\\'
     # Set the directory of the L1 data
     L1_dir = 'C:\\Users\\pselmer\\Documents\\Roscoe\\data\\'+proj_name+'\\L1\\'

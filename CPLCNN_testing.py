@@ -38,11 +38,11 @@ day4_r = transform.rescale(day4, input_shape)
 target_shape = (2560, 1440, 1)
 filename = r"C:/Users/drusi/CPLCNN/Training_targets/CPL_L2_V1-02_01kmPro_20012_16dec19.hdf5"
 hdf5 = h5py.File(filename, 'r')
-target1 = np.array(hdf5['profile/Feature_Type'][:,:])
+target1 = np.array(hdf5['profile/Feature_Type'][:, :])
 
 filename = r"CPL_L2_V1-02_01kmPro_20013_15jan20.hdf5"
 hdf5 = h5py.File(filename, 'r')
-target2 = np.array(hdf5['profile/Feature_Type'][:,:])
+target2 = np.array(hdf5['profile/Feature_Type'][:, :])
 
 # filename = r"C:/Users/drusi/CPLCNN/Training_targets/CPL_L2_V1-02_01kmPro_20014_18jan20.hdf5"
 # hdf5 = h5py.File(filename, 'r')
@@ -53,17 +53,17 @@ target2 = np.array(hdf5['profile/Feature_Type'][:,:])
 # target4 = np.array(hdf5['profile/Feature_Type'][:,:])
 
 
-t1 = np.transpose(target1, (1,0))
+t1 = np.transpose(target1, (1, 0))
 t1_r = transform.resize(t1, target_shape)
 
-t2 = np.transpose(target2, (1,0))
+t2 = np.transpose(target2, (1, 0))
 t2_r = transform.resize(t2, target_shape)
 
-# t3 = np.transpose(target3, (1,0))
+# t3 = np.transpose(target3, (1, 0))
 # t3_r = transform.resize(t3, target_shape)
 
 
-# t4 = np.transpose(target4, (1,0))
+# t4 = np.transpose(target4, (1, 0))
 # t4_r = transform.resize(t4, target_shape)
 
 

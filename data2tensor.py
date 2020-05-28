@@ -26,7 +26,7 @@ def cpl2tensor(directory):
     
     CLS_struct = mutable_data_structs.define_CLS_structure(nchans, nbins, CLS_meta)
     
-    #directory = r"C:\Users\drusi\CPLCNN\Training_data\20-012"
+    # directory = r"C:\Users\drusi\CPLCNN\Training_data\20-012"
     dic = collections.OrderedDict()
     
     for file in glob.glob('{}/*.cls'.format(directory)):
@@ -34,10 +34,10 @@ def cpl2tensor(directory):
         raw_data = np.fromfile(file, dtype=CLS_struct)
         file_num = os.path.basename(os.path.normpath(file))[:-4]
         dic["photon_count_{}".format(file_num)] = raw_data['counts']
- 
 
-    input_tensor = np.transpose(np.concatenate([dic[x] for x in dic], 0), axes = (1, 0, 2))
+    input_tensor = np.transpose(np.concatenate([dic[x] for x in dic], 0), axes=(1, 0, 2))
     return input_tensor
+
 
 def cats2tensor(directory):
     CATS_meta = mutable_data_structs.define_CLS_meta_struct(256)
@@ -47,7 +47,7 @@ def cats2tensor(directory):
     
     CLS_struct = mutable_data_structs.define_CLS_structure(nchans, nbins, CLS_meta)
     
-    #directory = r"C:\Users\drusi\CPLCNN\Training_data\20-012"
+    # directory = r"C:\Users\drusi\CPLCNN\Training_data\20-012"
     dic = collections.OrderedDict()
     
     for file in glob.glob('{}/*.cls'.format(directory)):
@@ -55,7 +55,6 @@ def cats2tensor(directory):
         raw_data = np.fromfile(file, dtype=CLS_struct)
         file_num = os.path.basename(os.path.normpath(file))[:-4]
         dic["photon_count_{}".format(file_num)] = raw_data['counts']
- 
 
-    input_tensor = np.transpose(np.concatenate([dic[x] for x in dic], 0), axes = (1, 0, 2))
+    input_tensor = np.transpose(np.concatenate([dic[x] for x in dic], 0), axes=(1, 0, 2))
     return input_tensor
