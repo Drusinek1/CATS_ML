@@ -67,7 +67,8 @@ full_Y = add_pad_to_vertical(new_Y, 512)
 model_shape = (512, 256, 1)       # changed to 256 to match image sizes and dimensions to match their descriptors
 # model_shape = (512, 16384, 3)
 # features is number of categories in the L2 data
-CNN = neural_nets.UNet_binary(model_shape, features=6, filters=16)
+CNN = neural_nets.UNet_binary2(model_shape, features=1, filters=16)
+# CNN = neural_nets.UNet_binary2(model_shape, features=6, filters=16)       Used for when we do typing!!
 # Move the number of samples to the first dimension
 full_X = np.transpose(full_X, [3, 0, 1, 2])
 full_Y = np.transpose(full_Y, [2, 0, 1])
