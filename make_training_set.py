@@ -44,6 +44,11 @@ def crop(img, windowsize_r, windowsize_c):
         image to be split
     windowsize_r : int
     windowsize_c : int
+    NOTE: As of now, keep windowsize_r and windowsize_c as even divisors of the
+    width and height of the image.
+    i.e. for a 100 x 100 image, use windowsize_r = 10 or 5  and window_size = 10 or 5 etc.
+    Failure to do so will result in the last image in the output list to crop off end data and 
+    will be smaller than the others.
     desired sized of each image window
 
     Returns
@@ -60,6 +65,25 @@ def crop(img, windowsize_r, windowsize_c):
             holder.append(window)
     
     return holder
+
+def merge(img_lst, orig_shape):
+    """
+    This function takes a list of ndarrays and merges them back into the original image.
+    
+    Parameters
+    ----------
+    img_lst : list[ndarray]
+        list containing images to be merged back together
+    orig_shape : tuple
+        shape of the original image before it was split.
+
+    Returns
+    -------
+    out : ndarray
+        recombined image
+    """
+    merged_lst = np.concatenate(img_lst,axis = 0)
+    merged_lst = merged_lst.reshape((orig_shape))
 
 def plot(X):
     """
@@ -242,7 +266,7 @@ def get_targets(file, top_bin_limit, bot_bin_limit):
 # ********** Beginning of Main ********** #
 # directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 # directory = "C:\\Users\\pselmer\\Documents\\CATS_ISS\\Data_samples\\NN_train\\"
-directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\"
+directory = r"C:/Users/drusi/OneDrive/Desktop/CPL/train"
 
 # Get fixed (L2) and original (L0) vertical bin frames
 # Updated to array instead of file read on 5/27/2020
@@ -301,11 +325,9 @@ for target_file in glob.glob('{}/*.hdf5'.format(directory)):
         t_lst.append(l2_img[image_sub])
     nn += 1
 # Need to check with Daniel to see if this needs to be 3 dimensional
-for answer_images in t_lst:
-    print(answer_images.shape)
 
 np.save('answers', t_lst)
-
+print("Answers completed!")
 
 # directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
 
