@@ -80,8 +80,9 @@ def separate_images(full_image, width_of_separation):
     for r in range(0, full_image.shape[0] - width_of_separation, width_of_separation):
         window = full_image[r:r + width_of_separation, :]
         holder.append(window)
-    window = full_image[-(width_of_separation+1):-1, :]
-    holder.append(window)
+    # two lines below take right most image which includes overlap data - Removed for baseline 5/29/2020
+    # window = full_image[-(width_of_separation+1):-1, :]
+    # holder.append(window)
     return holder
 
 
@@ -184,10 +185,9 @@ def get_input(l0_file, fixed_frame, original_frame, top_bin_limit, bot_bin_limit
     chan1 = averaged_l0_fixed_frame[:, 0, :]
     chan2 = averaged_l0_fixed_frame[:, 1, :]
 
-    # prod = np.transpose(np.array([chan1 * chan2]), (1, 2, 0))
-    prod = chan1 * chan2
-    prod = np.reshape(prod, (prod.shape[0], 1, prod.shape[1]))
-    full_array = np.concatenate([averaged_l0_fixed_frame, prod], axis=1)
+    summation_channel = chan1 + chan2
+    summation_channel = np.reshape(summation_channel, (summation_channel.shape[0], 1, summation_channel.shape[1]))
+    full_array = np.concatenate([averaged_l0_fixed_frame, summation_channel], axis=1)
     print('Full_array shape: ', full_array.shape)
 
     cropped_full = separate_images(full_array, width_to_separate)
@@ -225,11 +225,34 @@ def get_targets(file, top_bin_limit, bot_bin_limit):
     return cropped_full
 
 
+def add_pad_to_vertical(small_array, target_height):
+    print('Size of input array is: ', small_array.shape)
+    # mall_array_width = small_array.shape[0]
+    small_array_height = small_array.shape[0]
+    pads_to_add = target_height - small_array_height
+    padding = np.zeros(small_array.shape)
+    if len(padding.shape) == 4:
+        # four dimensional array
+        padding = padding[0:pads_to_add, :, :, :]
+    else:
+        if len(padding.shape) == 3:
+            # three dimensional array
+            padding = padding[0:pads_to_add, :, :]
+        else:
+            # two dimensional array
+            padding = padding[0:pads_to_add, :]
+
+    sized_array = np.append(padding, small_array, axis=0)
+    print('Size of new array is ', sized_array.shape)
+    return sized_array
+
+
 # ********** Beginning of Main ********** #
 # directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
 # directory = "C:\\Users\\pselmer\\Documents\\CATS_ISS\\Data_samples\\NN_train\\"
 directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\test_records\\"
-
+save_directory = "C:\\Users\\akupchoc.NDC\\PycharmProjects\\CATS_ML\\questions_and_answers\\"
+# *********** UPDATE DIRECTORIES ABOVE **************** #
 # Get fixed (L2) and original (L0) vertical bin frames
 # Updated to array instead of file read on 5/27/2020
 L0_bin_alt = np.linspace(27908.3, -9443.19, 480)
@@ -260,19 +283,25 @@ top_bin = int(top_bin.mean().round())
 bot_bin = L2_bin_alt.shape[0]
 print('Only use data between vertical bins {0:d} and {1:d}'.format(top_bin, bot_bin))
 
+image_key = []
 x_lst = []
 nn = 1
 for input_file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, input_file))
     l0_img = get_input(input_file, L2_bin_alt, L0_bin_alt, top_bin, bot_bin)
+    # Adds to a list the file name and the number of images taken from that file
+    image_key.append((input_file, len(l0_img)))
     for element in np.arange(0, len(l0_img)):
-        x_lst.append(l0_img[element])
+        #  L0_img needs to be taller for model input so each image is being reshaped, padded, and then added to the list
+        temp_images = np.transpose(l0_img[element], (2, 1, 0))
+        temp_images = add_pad_to_vertical(temp_images, 512)
+        x_lst.append(temp_images)
     nn += 1
 
 for question_images in x_lst:
     print(question_images.shape)
-np.save('test_questions', x_lst)
-
+np.save(save_directory+"test_questions", x_lst)
+np.save(save_directory+"test_image_key", image_key)
 print("Questions completed, moving onto Answers!")
 
 nn = 1
@@ -282,13 +311,17 @@ for target_file in glob.glob('{}/*.hdf5'.format(directory)):
     print("Reading {} {}...".format(nn, target_file))
     l2_img = get_targets(target_file, top_bin, bot_bin)
     for image_sub in np.arange(0, len(l2_img)):
-        t_lst.append(l2_img[image_sub])
+        #  L2_img needs to be taller for model input so each image is being reshaped, padded, and then added to the list
+        temp_image = np.transpose(l2_img[image_sub], (1, 0))
+        temp_image = add_pad_to_vertical(temp_image, 512)
+
+        t_lst.append(temp_image)
     nn += 1
-# Need to check with Daniel to see if this needs to be 3 dimensional
+
 for answer_images in t_lst:
     print(answer_images.shape)
 
-np.save('test_answers', t_lst)
+np.save(save_directory+"test_answers", t_lst)
 
 
 # directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
