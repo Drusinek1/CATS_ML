@@ -278,8 +278,7 @@ for L2_file in L2_file_list:
     try:
         # Will fail first time and then does something useless for remainder of reads
         print(L2_bin_alt.dtype)
-    except:
-        L2_bin_alt = np.asarray(hdf5['metadata_parameters/Bin_Altitude_Array']) * 1e3  # in km and changing to meters
+    except:L2_bin_alt = np.asarray(hdf5['metadata_parameters/Bin_Altitude_Array']) * 1e3  # in km and changing to meters
     try:
         top_bin = np.concatenate((top_bin, np.asarray(hdf5['geolocation/Index_Top_Bin_Fore_FOV'])))
     except:
@@ -300,6 +299,7 @@ print('Only use data between vertical bins {0:d} and {1:d}'.format(top_bin, bot_
 
 x_lst = []
 nn = 1
+
 for input_file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, input_file))
     l0_img = get_input(input_file, L2_bin_alt, L0_bin_alt, top_bin, bot_bin)
@@ -307,8 +307,6 @@ for input_file in glob.glob('{}/*.dat'.format(directory)):
         x_lst.append(l0_img[element])
     nn += 1
 
-for question_images in x_lst:
-    print(question_images.shape)
 np.save('questions', x_lst)
 
 print("Questions completed, moving onto Answers!")
@@ -329,26 +327,26 @@ for target_file in glob.glob('{}/*.hdf5'.format(directory)):
 np.save('answers', t_lst)
 print("Answers completed!")
 
-# directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
+directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
 
-# x_lst = []
-# nn = 1
-# for file in glob.glob('{}/*.dat'.format(directory)):
-#     print("Reading {} {}...".format(nn, file))
-#     img = get_input(file)        
-#     x_lst.append(img)
-#     nn+=1
+x_lst = []
+nn = 1
+for input_file in glob.glob('{}/*.dat'.format(directory)):
+    print("Reading {} {}...".format(nn, input_file))
+    img = get_input(inut_file, L2_bin_alt, L0_bin_alt, top_bin, bot_bin)        
+    x_lst.append(img)
+    nn+=1
     
-# np.save('test_questions', x_lst)
+np.save('test_questions', x_lst)
 
 
-# directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
+directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\test"
 
-# t_lst = []
-# for file in glob.glob('{}/*.hdf5'.format(directory)):
-#     print("Reading {} {}...".format(nn, file))
-#     img = get_targets(file) 
-#     t_lst.append(img)
-#     nn+=1
+t_lst = []
+for file in glob.glob('{}/*.hdf5'.format(directory)):
+    print("Reading {} {}...".format(nn, file))
+    img = get_targets(file) 
+    t_lst.append(img)
+    nn+=1
     
-# np.save('test_answers', t_lst)
+np.save('test_answers', t_lst)

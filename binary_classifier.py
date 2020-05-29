@@ -26,6 +26,8 @@ import cv2
 
 
 
+start = datetime.now()
+
 def plot(X,dims):
     """
     Parameters
@@ -61,9 +63,89 @@ def plot(X,dims):
     
     return None
 
+def get_eval_metrics(pred, actual, classes, image_export_path):
+    """
+    This function calculates a confusion matrix for the inputed 
+    predicted and actual arrays, plots the confusion matrix and outputs 
+    accuracy metrics.
+    
+    Parameters
+    ----------
+    pred : M x N ndarray
+        the predicted array
+    actual : M x N ndarray
+        the target array
+    classes : list[String]
+        a list of the class names for the data
+    image_export_path : String
+        Path where to save plotted confusion matrix
+    Returns
+    -------
+    out : ndarray
+              The computed confusion matrix
+          dictionary[int]
+              Dictionary containin TP, TN, FP, FN, precision, recall, f1 score
+    """
+    
+
+    # True Positives
+    TP = np.count_nonzero(pred * actual)
+    
+    # True Negatives
+    TN = np.count_nonzero((pred - 1) * (actual - 1))
+    
+    # False Positives
+    FP = np.count_nonzero(pred * (actual - 1))
+    
+    
+    # False Negatives
+    
+    FN = np.count_nonzero((pred - 1) * actual) 
+    
+    
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    f1 = 2 * precision * recall / (precision + recall)
+    
+    
+    metrics_dict = {'True_Positives':TP,
+                    'True_Negatives':TP,
+                    'False_Positives':TP,
+                    'False_Negatives':TP,
+                    'Precision':precision,
+                    'Recall':recall,
+                    'F1_Score':f1}
+    
+    confusion_matrix = np.array([[TP, FP],
+                                 [FN, TN]])
+    
+    #Plotting the confusion matrix
+    fig, ax = plt.subplots()
+    fig.canvas.draw()
+    
+    #Replacing number labels with text
+    xlabels = [item.get_text() for item in ax.get_xticklabels()]
+    ylabels = [item.get_text() for item in ax.get_xticklabels()]
+    xlabels[1], xlabels[2] = "{} Predicted".format(classes[0]), "{} Predicted".format(classes[1])
+    ylabels[1], ylabels[2] = "{} Actual".format(classes[0]), "{} Actual".format(classes[1])
+    
+    ax.set_xticklabels(xlabels)
+    ax.set_yticklabels(ylabels, rotation=90, verticalalignment="center")
+
+    ax.matshow(confusion_matrix,cmap='Blues', aspect='auto')
+
+    for i in range(0, confusion_matrix.shape[0]):
+        for j in range(0, confusion_matrix.shape[1]):
+            c = confusion_matrix[j,i]
+            ax.text(i, j, str(c), va='center', ha='center')
+            
+    #save the figure to the specified export path        
+    plt.savefig(fig, image_export_path)
+    
+    return confusion_matrix, metrics_dict
 
 
-start = datetime.now()
+
 
 # """
 # Formatting Input Training Data
@@ -106,6 +188,9 @@ X = np.load('questions.npy', allow_pickle=True)
 # X = np.transpose(X, (0,3,2,1))
 Y = np.load('answers.npy', allow_pickle=True)
 
+"""
+Start of Script
+"""
 
 Xt = np.load('test_questions.npy', allow_pickle=True)[:, :, :, :]
 
@@ -142,57 +227,28 @@ pred[pred < 0.18] = 0
 pred = pred.astype(int)
 
 
-# """
-# Calculate Recall, Precision, and F1 Score
-# """
 
-# #True Positives
-TP = np.count_nonzero(pred * Yt)
-
-
-# #True Negatives 
-TN = np.count_nonzero((pred - 1) * (Yt - 1))
-
-# #False Positives
-FP = np.count_nonzero(pred * (Yt - 1))
-
-# #False Negatives
-
-#UNet will expect this input shape for all training data
 model_shape = (512,1024,3)
 
 
 CNN = neural_nets.UNet_binary(model_shape, features=1, filters=16)
 history = CNN.model.fit(X, Y, epochs=15, verbose=1, validation_split=0.3, batch_size=1)
 
-pred = CNN.model.predict(Xt)
-pred[pred >= 0.5] = 1
-pred[pred < 0.5] = 0 
-pred = np.squeeze(pred)
+model = CNN.model
+model.save("test_model")
+
+# pred = CNN.model.predict(Xt)
+# pred[pred >= 0.5] = 1
+# pred[pred < 0.5] = 0 
+# pred = np.squeeze(pred)
 
 """
 Calculate Recall, Precision, and F1 Score
 """
 
-# True Positives
-TP = np.count_nonzero(pred * Yt)
-
-# True Negatives
-TN = np.count_nonzero((pred - 1) * (Yt - 1))
-
-# False Positives
-FP = np.count_nonzero(pred * (Yt - 1))
 
 
-# False Negatives
 
-FN = np.count_nonzero((pred - 1) * Yt) 
-
-precision = TP / (TP + FP)
-recall = TP / (TP + FN)
-f1 = 2 * precision * recall / (precision + recall)
-
-print("Recall: {}\nPrecision:{}\nF1_Score:{}".format(recall, precision, f1))
 
 
 plt.figure()
