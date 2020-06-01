@@ -277,7 +277,7 @@ for L2_file in L2_file_list:
     hdf5 = h5py.File(L2_file, 'r')
     try:
         # Will fail first time and then does something useless for remainder of reads
-        print(L2_bin_alt.dtype)
+        L2_bin_alt.dtype
     except:L2_bin_alt = np.asarray(hdf5['metadata_parameters/Bin_Altitude_Array']) * 1e3  # in km and changing to meters
     try:
         top_bin = np.concatenate((top_bin, np.asarray(hdf5['geolocation/Index_Top_Bin_Fore_FOV'])))
@@ -333,7 +333,7 @@ x_lst = []
 nn = 1
 for input_file in glob.glob('{}/*.dat'.format(directory)):
     print("Reading {} {}...".format(nn, input_file))
-    img = get_input(inut_file, L2_bin_alt, L0_bin_alt, top_bin, bot_bin)        
+    img = get_input(input_file, L2_bin_alt, L0_bin_alt, top_bin, bot_bin)        
     x_lst.append(img)
     nn+=1
     

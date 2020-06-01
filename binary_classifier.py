@@ -23,6 +23,7 @@ import pdb
 import lidar
 import initializations
 import cv2
+import csv
 
 
 
@@ -145,7 +146,39 @@ def get_eval_metrics(pred, actual, classes, image_export_path):
     return confusion_matrix, metrics_dict
 
 
+def export_eval_metrics(eval_metrics, sample_number):
+  """
+    This function calculates a confusion matrix for the inputed 
+    predicted and actual arrays, plots the confusion matrix and outputs 
+    accuracy metrics.
+    
+    Parameters
+    ----------
+    eval_metrics : dictionary
+        a dictionary containing eval metrics
+    sample_number : int
+        number of the sample that correspond to the inputed eval_metrics
 
+    Returns
+    -------
+    None
+    """
+    
+
+    csv_columns = ['Precision','Recall','F1_Score']
+    
+
+    csv_file = "eval_{}.csv".format(sample_number)
+    try:
+        with open(csv_file, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for data in dict_data:
+                writer.writerow(data)
+    except IOError:
+        print("I/O error")
+    
+    return None
 
 # """
 # Formatting Input Training Data
