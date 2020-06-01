@@ -163,6 +163,7 @@ def get_eval_metrics_binary(predicted_array, actual_array, classes, image_export
 
     # save the figure to the specified export path
     plt.savefig(image_export_path)
+    plt.close(fig)
     return confusion_matrix, metrics_dict
 
 
@@ -215,12 +216,18 @@ print('At this point all of the data should be in the correct format to be used 
 # Filters are an input variable
 model_shape = (512, 256, 1)       # changed to 256 to match image sizes and dimensions to match their descriptors
 features = 1
-filter_choice = [4, 16]
-dropout_choice = [0.1, 0.2]
-epoch_choice = [1, 2]
-channel_selection = [(1, 1, 1), (1, 1, 0), (0, 0, 1), (1, 0, 0)]      # selector for which channels to train on
+filter_choice = [6, 8, 20]         # [4, 16]
+dropout_choice = [0.2]              # [0.1, 0.2]
+epoch_choice = [2]                  # [1, 2]
+channel_selection = [(1, 1, 1), (1, 1, 0), (0, 0, 1), (1, 0, 0), (1, 0, 1)]   # selector for which channels to train on
 
-metrics_dict_list = []      # List used to retain the dictionary for each run
+try:
+    # if list exists already just append to the list
+    metrics_dict_list = np.load(save_directory + "metrics_list.npy", allow_pickle=True)
+    metrics_dict_list = metrics_dict_list.tolist()
+except:
+    # if no list exists, create an empty list
+    metrics_dict_list = []      # List used to retain the dictionary for each run
 classes = ['Layer', 'No Layer']
 # Put for loops in here:
 
@@ -248,7 +255,9 @@ for filters_used in np.arange(0, len(filter_choice)):
                     print('Training on Channel 11 and 12 Sum')
                     CNN.model.fit(channel_3, full_Y, epochs=epoch_choice[epoch_used], verbose=2,
                                   validation_data=(channel_1_test, full_Yt))
-                chan_select_string = str(channel_selection[0][0])+str(channel_selection[0][1])+str(channel_selection[0][2])
+                chan_select_string = str(channel_selection[channel_element][0])+\
+                                     str(channel_selection[channel_element][1])+\
+                                     str(channel_selection[channel_element][2])
                 pred = CNN.model.predict(channel_1_test)
                 # In the future you can stitch arrays together here to make comparison confusion matrices and
                 # images for larger sets of data
