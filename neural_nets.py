@@ -25,7 +25,7 @@ input:
 """
 
 
-class UNet_multi:
+class UNetMulti:
     def __init__(self, img, filters, features):
         self.model = self.initalize_unet(img, features, filters)
         self.features = features
@@ -175,7 +175,7 @@ class UNet_multi:
         return model
 
 
-class UNet_binary:
+class UNetBinary:
     def __init__(self, img, filters, features):
         self.model = self.initalize_unet(img, features, filters)
         self.features = features
@@ -301,7 +301,7 @@ class UNet_binary:
         return model
 
 
-class UNet_binary2:
+class UNetBinary2:
     def __init__(self, img, filters, features, dropout):
         self.model = self.initalize_unet2(img, features, filters, dropout)
         self.features = features

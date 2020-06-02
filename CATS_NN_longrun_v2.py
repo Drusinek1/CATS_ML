@@ -14,15 +14,15 @@ filter_choice
 dropout_choice
 epoch_choice
 channel_selection
+
+Version 2 changes the input to the neural network to be a variable number of channels.
+The validation set and output generation is used with the same channel mask as the fit function
 """
-import sys
 import numpy as np
 import neural_nets
 import pdb
 import matplotlib as mpl
-from sklearn.metrics import f1_score
 from matplotlib import pyplot as plt
-from matplotlib import gridspec as gridspec
 from lidar import get_a_color_map
 
 # Location of where you would like the output to be located
@@ -31,12 +31,7 @@ output_directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_M
 save_directory = "C:\\Users\\akupchoc.NDC\\PycharmProjects\\CATS_ML\\questions_and_answers\\"
 
 
-def image_plot(im_array, scale_min, scale_max):
-    plt.imshow(im_array, cmap=get_a_color_map(), vmin=scale_min, vmax=scale_max)
-    return None
-
-
-def image_2d_data_contcb(arr, cbmin, cbmax, wid, hgt, outfile):
+def image_2d_data_contcb(arr, cbmin, cbmax, wid, hgt, requested_title, outfile):
     """ Make & save an image plot of a 2D array of data.
         Use a continuous color bar.
 
@@ -48,6 +43,7 @@ def image_2d_data_contcb(arr, cbmin, cbmax, wid, hgt, outfile):
 
     img2 = ax2.imshow(arr, cmap=get_a_color_map(), vmin=cbmin, vmax=cbmax, aspect='auto')
     plt.colorbar(img2, ax=ax2)
+    ax2.set_title(requested_title)
     plt.savefig(outfile)
     plt.close(fig2)
 
@@ -82,8 +78,7 @@ def image_2d_data_dsrtcb(arr, clist, cbounds, keystring, wid, hgt, outfile):
     img = ax.imshow(arr, cmap=cmap, vmin=min(cbounds), vmax=max(cbounds), aspect='auto')
     ax.set_title(keystring)
     cbar = plt.colorbar(img, ax=ax)
-    # cbticks = cbar.ax.get_yticks()
-    cbar.set_ticks(np.arange(min(cbounds), max(cbounds) + 0.5, .5))
+    cbar.set_ticks(np.arange(min(cbounds), max(cbounds) + 0.5, .5))     # Forces existence of .5 ticks
     cbticks = cbar.ax.get_yticks()
     newticklabels = []
     for tk in cbticks:
@@ -97,8 +92,9 @@ def image_2d_data_dsrtcb(arr, clist, cbounds, keystring, wid, hgt, outfile):
     plt.close(fig)
 
 
-def neural_net_binary_plotter(current_test_channel, input_data_arry, confusion_matrix, continuous_predicted_array,
-                              confusion_plot_array, classes, clist, cbounds, keystring, wid, hgt, outfile):
+def neural_net_binary_plotter(test_channel_mask, title_for_input_data, input_data_arry, confusion_matrix,
+                              title_for_predicted_data, continuous_predicted_array, confusion_plot_array, classes,
+                              clist, cbounds, keystring, wid, hgt, outfile, metrics_dictionary):
     """ Make & save an image plot of a 2D array of data.
         Use a discrete color bar.
 
@@ -107,16 +103,34 @@ def neural_net_binary_plotter(current_test_channel, input_data_arry, confusion_m
 
     Parameters
     ----------
-    current_test_channel : integer
-        Current Channel being used as prediction input
+    test_channel_mask : str
+        Mask of current channels being used for training and validation
+    title_for_input_data : str
+        Title requested for input data array plot
     input_data_arry : M x N array
         array used for input into the neural network
     confusion_matrix : 2 x 2 array
         values from confusion matrix calculation of entire dataset
+    title_for_predicted_data : str
+        Title request for predicted data array plot
     continuous_predicted_array : M x N array
         array from prediction of neural network
     confusion_plot_array : M x N array
         array of discrete values showing TP, TN, FP, and FN
+    classes : list
+        list of strings with the names of the classes to be used
+    clist : list
+        list of corresponding colors to be used in confusion visualization plot
+    cbounds : list
+        list of integers to be used for confusion visualization plot
+    keystring : str
+        Title of confusion visualization plot
+    wid : float
+        width of the plot in inches for each curtain plot
+    hgt : float
+        height of the plot in inches for each curtain plot
+    outfile : str
+        file where the image generated should be saved including file path
     Returns
     -------
     None
@@ -129,8 +143,27 @@ def neural_net_binary_plotter(current_test_channel, input_data_arry, confusion_m
     ax2 = complete_fig.add_subplot(specs[1, 0])
     ax3 = complete_fig.add_subplot(specs[2, 0])
     ax4 = complete_fig.add_subplot(specs[1, 1])
-    ax1.set_title('Test input from Channel ' + str(current_test_channel))
-    ax2.set_title('Predicted Output using Channel ' + str(current_test_channel))
+    # Below section adds annotation of model performance
+    ax5 = complete_fig.add_subplot(specs[2, 1])
+    # Removes tick marks
+    ax5.set_xticks([])
+    ax5.set_yticks([])
+    # Removes visible axes
+    for vis_spine in ax5.spines.values():
+        vis_spine.set_visible(False)
+    try:
+        label = 'Precision: {:.6f}\n\nRecall:      {:.6f}\n\nF1 Score:  {:.6f}'.format(metrics_dictionary["Precision"],
+                                                             metrics_dictionary["Recall"],
+                                                             metrics_dictionary["F1_Score"])
+    except:
+        label = 'Precision: N/A\n\nRecall:      N/A\n\nF1 Score:  N/A'
+
+    ax5.annotate(label, (0.1, 0.5), xycoords='axes fraction', va='center')
+
+
+
+    ax1.set_title(title_for_input_data)
+    ax2.set_title(title_for_predicted_data)
 
     # Plot of input data using rainbow colormap
     img2 = ax1.imshow(input_data_arry, cmap=get_a_color_map(), vmin=0, vmax=100, aspect='auto')
@@ -212,7 +245,7 @@ def remove_pad_from_vertical(large_array, target_height):
     return large_array
 
 
-def get_eval_metrics_binary(predicted_array, actual_array, classes, image_export_path, channel_tested, metrics_dict):
+def get_eval_metrics_binary(predicted_array, actual_array, classes, image_export_path, channel_mask_used, metrics_dict):
     """
     This function calculates a confusion matrix for the input
     predicted and actual arrays, plots the confusion matrix and outputs
@@ -226,9 +259,9 @@ def get_eval_metrics_binary(predicted_array, actual_array, classes, image_export
         the target array
     classes : list[String]
         a list of the class names for the data
-    image_export_path : String
+    image_export_path : str
         Path where to save plotted confusion matrix
-    channel_tested
+    channel_mask_used : str
         Current channel data input into prediction
     metrics_dict
         dictionary to be added to with metric information
@@ -264,14 +297,15 @@ def get_eval_metrics_binary(predicted_array, actual_array, classes, image_export
         f1 = 'N/A - divide by 0'
     population = np.prod(predicted_array.shape)
 
-    metrics_dict['True_Positives_' + str(channel_tested)] = TP
-    metrics_dict['True_Negatives_' + str(channel_tested)] = TN
-    metrics_dict['False_Positives_' + str(channel_tested)] = FP
-    metrics_dict['False_Negatives_' + str(channel_tested)] = FN
-    metrics_dict['Population_' + str(channel_tested)] = population
-    metrics_dict['Precision_' + str(channel_tested)] = precision
-    metrics_dict['Recall_' + str(channel_tested)] = recall
-    metrics_dict['F1_Score_' + str(channel_tested)] = f1
+    metrics_dict['True_Positives'] = TP
+    metrics_dict['True_Negatives'] = TN
+    metrics_dict['False_Positives'] = FP
+    metrics_dict['False_Negatives'] = FN
+    metrics_dict['Population'] = population
+    metrics_dict['Precision'] = precision
+    metrics_dict['Recall'] = recall
+    metrics_dict['F1_Score'] = f1
+    metrics_dict['Channel_Mask'] = channel_mask_used
     confusion_matrix = np.array([[TP/population, FP/population], [FN/population, TN/population]])
 
     # Plotting the confusion matrix
@@ -359,14 +393,14 @@ print('At this point all of the data should be in the correct format to be used 
 # Filters are an input variable
 model_shape = (512, 256, 1)       # changed to 256 to match image sizes and dimensions to match their descriptors
 features = 1
-filter_choice = [8, 16]         # [4, 16]
-dropout_choice = [0.1, 0.2]              # [0.1, 0.2]
-epoch_choice = [1, 2]                  # [1, 2]
-channel_selection = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (1, 1, 0)]   # selector for which channels to train on
-
+filter_choice = [4, 8, 16]         # [4, 16]
+dropout_choice = [0.1, 0.2, 0.3]              # [0.1, 0.2]
+epoch_choice = [1, 2, 3]                  # [1, 2]
+channel_selection = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (1, 1, 0)]
+# ***************************************************** #
 try:
     # if list exists already just append to the list
-    metrics_dict_list = np.load(save_directory + "metrics_list.npy", allow_pickle=True)
+    metrics_dict_list = np.load(save_directory + "metrics_list_v2.npy", allow_pickle=True)
     metrics_dict_list = metrics_dict_list.tolist()
 except:
     # if no list exists, create an empty list
@@ -379,97 +413,122 @@ for filters_used in np.arange(0, len(filter_choice)):
         for epoch_used in np.arange(0, len(epoch_choice)):
             for channel_element in np.arange(0, len(channel_selection)):
                 # Where all the magic happens
+                # model_shape is determined by the number of channels used for input in channel selection
+                model_shape = (512, 256, sum(channel_selection[channel_element]))
                 CNN = neural_nets.UNetBinary2(model_shape, features=1, filters=filter_choice[filters_used],
-                                               dropout=dropout_choice[dropout_used])
+                                              dropout=dropout_choice[dropout_used])
                 # verbose set to 1 will give you a progress bar if desired
-                # CNN.model.fit(channel_1, full_Y, epochs=1, verbose=2, validation_split=0.2)
                 if channel_selection[channel_element][0] == 1:
                     # Use Channel 11 to train the model
-                    print('Training on Channel 11')
-                    CNN.model.fit(channel_1, full_Y, epochs=epoch_choice[epoch_used], verbose=2,
-                                  validation_data=(channel_1_test, full_Yt))
-                if channel_selection[channel_element][1] == 1:
-                    # Use Channel 12 to train the model
-                    print('Training on Channel 12')
-                    CNN.model.fit(channel_2, full_Y, epochs=epoch_choice[epoch_used], verbose=2,
-                                  validation_data=(channel_1_test, full_Yt))
-                if channel_selection[channel_element][2] == 1:
-                    # Use the Sum of 11 and 12 to train the model
-                    print('Training on Channel 11 and 12 Sum')
-                    CNN.model.fit(channel_3, full_Y, epochs=epoch_choice[epoch_used], verbose=2,
-                                  validation_data=(channel_1_test, full_Yt))
+                    print('Training with Channel 11')
+                    train_array = channel_1
+                    prediction_input_array = channel_1_test
+                    L2_questions = remove_pad_from_vertical(channel_1_test, vertical_dimension_of_output)
+                    question_title = 'Channel 11 from ' + granule_to_plot
+                    predicted_title = "Predicted Output using only Channel 11"
+                    if channel_selection[channel_element][1] == 1:
+                        # Use channel 11 and also use Channel 12 to train the model
+                        print('Also Training with Channel 12')
+                        train_array = np.concatenate((train_array, channel_2), axis=3)
+                        prediction_input_array = np.concatenate((prediction_input_array, channel_2_test), axis=3)
+                        predicted_title = "Predicted Output using Channel 11 and Channel 12"
+                    if channel_selection[channel_element][2] == 1:
+                        # Also include the sum with training
+                        print('Also Training with Sum of 11 and 12')
+                        train_array = np.concatenate((train_array, channel_3), axis=3)
+                        prediction_input_array = np.concatenate((prediction_input_array, channel_3_test), axis=3)
+                        if not channel_selection[channel_element][1] == 1:
+                            predicted_title = "Predicted Output using Channel 11 and the Sum of 11 and 12"
+                        else:
+                            predicted_title = "Predicted Output using Channel 11, 12, and their Sum"
+                else:
+                    if channel_selection[channel_element][1] == 1:
+                        # Do not use 11 but use Channel 12 to train the model
+                        print('Training with Channel 12')
+                        train_array = channel_2
+                        prediction_input_array = channel_2_test
+                        L2_questions = remove_pad_from_vertical(channel_2_test, vertical_dimension_of_output)
+                        question_title = 'Channel 12 from ' + granule_to_plot
+                        predicted_title = "Predicted Output using only Channel 12"
+                        if channel_selection[channel_element][2] == 1:
+                            # Also include the sum with training
+                            train_array = np.concatenate((train_array, channel_3), axis=3)
+                            prediction_input_array = np.concatenate((prediction_input_array, channel_3_test), axis=3)
+                            predicted_title = "Predicted Output using Channel 12 and the Sum of 11 and 12"
+                    else:
+                        if channel_selection[channel_element][2] == 1:
+                            # Use only Sum of 11 and 12 to train the model
+                            print('Training only with sum of Channel 11 and 12')
+                            train_array = channel_3
+                            prediction_input_array = channel_3_test
+                            L2_questions = remove_pad_from_vertical(channel_3_test, vertical_dimension_of_output)
+                            question_title = 'Sum of Channel 11 and 12 from ' + granule_to_plot
+                            predicted_title = "Predicted Output using only the sum of Channel 11 and 12"
+                CNN.model.fit(train_array, full_Y, epochs=epoch_choice[epoch_used], verbose=2,
+                              validation_data=(prediction_input_array, full_Yt))
+
                 chan_select_string = str(channel_selection[channel_element][0]) + \
                                      str(channel_selection[channel_element][1]) + \
                                      str(channel_selection[channel_element][2])
                 configuration_string = 'image_' + str(filter_choice[filters_used]) + '_' + str(epoch_choice[epoch_used])\
                                        + '_' + str(int(dropout_choice[dropout_used] * 100)) + '_' + chan_select_string + '_'
                 met_dict = {}
-                for test_channel in np.arange(0, 3):
-                    if test_channel == 0:
-                        pred = CNN.model.predict(channel_1_test)
-                        L2_questions = remove_pad_from_vertical(channel_1_test, vertical_dimension_of_output)
-                        question_arry = stitch_array(L2_questions, test_image_key, file_number_to_use, image_subset)
-                    if test_channel == 1:
-                        pred = CNN.model.predict(channel_2_test)
-                        L2_questions = remove_pad_from_vertical(channel_2_test, vertical_dimension_of_output)
-                        question_arry = stitch_array(L2_questions, test_image_key, file_number_to_use, image_subset)
-                    if test_channel == 2:
-                        pred = CNN.model.predict(channel_3_test)
-                        L2_questions = remove_pad_from_vertical(channel_3_test, vertical_dimension_of_output)
-                        question_arry = stitch_array(L2_questions, test_image_key, file_number_to_use, image_subset)
-                    # removing the top padding that was added for the UNet neural network
-                    pred = remove_pad_from_vertical(pred, vertical_dimension_of_output)
-                    # predicted_arr is the two dimensional array of data to be plotted and analyzed
-                    # predicted_arr = pred[0, :, :, 0]
-                    # solution_arry is the corresponding two dimensional array from the input the to predict function
-                    # solution_arry = np.squeeze(full_Yt[0, :, :])
-                    # Stitch arrays together to make comparison confusion matrices and images for larger sets of data
-                    predicted_arr = stitch_array(pred, test_image_key, file_number_to_use, image_subset)
-                    # Continuous color bar
-                    cbmin = 0
-                    cbmax = 1
-                    wid = 16
-                    hgt = (predicted_arr.shape[0]/predicted_arr.shape[1]) * wid
-                    outfile = output_directory + configuration_string + 'test_channel_' + str(test_channel) \
-                              + '_predicted.png'
-                    print('Saving scaled imaged to file')
-                    image_2d_data_contcb(predicted_arr, cbmin, cbmax, wid, hgt, outfile)
-                    # Section of code used to separate into discrete values
-                    # After the predicted continuous array is created, modify the prediction to discrete values
-                    pred_discrete = np.round(pred)         # Using round creates a separation level of 0.5
-                    predicted_arr_discrete = np.round(predicted_arr)    # Used for image, not calculation
-                    # Determine Metrics and generate confusion matrix
-                    image_export_pathname = output_directory + configuration_string + 'test_channel_' + str(test_channel) \
-                                        + '_Confusion.png'
-                    con_matrix, met_dict = get_eval_metrics_binary(pred_discrete, L2_answers, class_labels,
-                                                                   image_export_pathname, test_channel, met_dict)
-                    # Discrete color bar plot - Requires discrete matrix inputs
-                    # TN = 0, FN = 1, FP = 2, TP, = 3
-                    comparison_plot_array = np.zeros(predicted_arr_discrete.shape)
-                    # True Positives
-                    comparison_plot_array += (np.abs(predicted_arr_discrete * solution_arry)*3)
-                    # True Negatives
-                    # Currently 0 so they can be skipped but left code below for future updates
-                    # comparison_plot_array += (np.abs((predicted_arr_discrete - 1) * (solution_arry - 1))*0)
-                    # False Positives
-                    comparison_plot_array += (np.abs(predicted_arr_discrete * (solution_arry - 1))*2)
-                    # False Negatives
-                    comparison_plot_array += (np.abs((predicted_arr_discrete - 1) * solution_arry)*1)
-                    clist = ['indigo', 'turquoise', 'red', 'ivory']
-                    cbounds = [0, 1, 2, 3, 4]
-                    keystring = '1 - TN, 2 - FN, 3 - FP, 4 - TP'
-                    wid = 16
-                    hgt = (comparison_plot_array.shape[0]/comparison_plot_array.shape[1]) * wid
-                    outfile = output_directory + configuration_string + 'test_channel_' + str(test_channel) + '_comp_plt.png'
-                    print('Saving 4-color image to file')
-                    image_2d_data_dsrtcb(comparison_plot_array, clist, cbounds, keystring, wid, hgt, outfile)
-                    met_dict["Con_Mat_" + str(test_channel)] = con_matrix
-                    # Plotting flashy plot with all the fun stuff here
-                    outfile = output_directory + configuration_string + 'test_channel_' + str(test_channel) + '_together.png'
-                    print('Saving comparison data image to file')
-                    wid = 16
-                    hgt = (comparison_plot_array.shape[0]/comparison_plot_array.shape[1]) * wid
-                    neural_net_binary_plotter(test_channel, question_arry, con_matrix, predicted_arr, comparison_plot_array, class_labels, clist, cbounds, keystring, wid, hgt, outfile)
+                pred = CNN.model.predict(prediction_input_array)
+                # Question array has the L0 data from the first channel listed in the channel mask
+                question_arry = stitch_array(L2_questions, test_image_key, file_number_to_use, image_subset)
+                # removing the top padding that was added for the UNet neural network
+                pred = remove_pad_from_vertical(pred, vertical_dimension_of_output)
+                # predicted_arr is the two dimensional array of data to be plotted and analyzed
+                # solution_arry is the corresponding two dimensional array from the input the to predict function
+                # The solution_array is created before the for loops since it does not change
+                # Stitch arrays together to make comparison confusion matrices and images for larger sets of data
+                predicted_arr = stitch_array(pred, test_image_key, file_number_to_use, image_subset)
+                # Continuous color bar
+                cbmin = 0
+                cbmax = 1
+                wid = 20
+                hgt = (predicted_arr.shape[0]/predicted_arr.shape[1]) * wid
+                outfile = output_directory + configuration_string + 'predicted.png'
+                print('Saving scaled imaged to file')
+                predict_title = "Predicted Output data from " + granule_to_plot
+                image_2d_data_contcb(predicted_arr, cbmin, cbmax, wid, hgt, predict_title, outfile)
+                # Section of code used to separate into discrete values
+                # After the predicted continuous array is created, modify the prediction to discrete values
+                pred_discrete = np.round(pred)         # Using round creates a separation level of 0.5
+                predicted_arr_discrete = np.round(predicted_arr)    # Used for image, not calculation
+                # Determine Metrics and generate confusion matrix
+                image_export_pathname = output_directory + configuration_string + 'Confusion.png'
+                con_matrix, met_dict = get_eval_metrics_binary(pred_discrete, L2_answers, class_labels,
+                                                               image_export_pathname, chan_select_string, met_dict)
+                # Discrete color bar plot - Requires discrete matrix inputs
+                # TN = 0, FN = 1, FP = 2, TP, = 3
+                comparison_plot_array = np.zeros(predicted_arr_discrete.shape)
+                # True Positives
+                comparison_plot_array += (np.abs(predicted_arr_discrete * solution_arry)*3)
+                # True Negatives
+                # Currently 0 so they can be skipped but left code below for future updates
+                # comparison_plot_array += (np.abs((predicted_arr_discrete - 1) * (solution_arry - 1))*0)
+                # False Positives
+                comparison_plot_array += (np.abs(predicted_arr_discrete * (solution_arry - 1))*2)
+                # False Negatives
+                comparison_plot_array += (np.abs((predicted_arr_discrete - 1) * solution_arry)*1)
+                clist = ['indigo', 'turquoise', 'red', 'ivory']
+                cbounds = [0, 1, 2, 3, 4]
+                keystring = '1 - TN, 2 - FN, 3 - FP, 4 - TP'
+                wid = 16
+                hgt = (comparison_plot_array.shape[0]/comparison_plot_array.shape[1]) * wid
+                outfile = output_directory + configuration_string + 'comp_plt.png'
+                print('Saving 4-color image to file')
+                image_2d_data_dsrtcb(comparison_plot_array, clist, cbounds, keystring, wid, hgt, outfile)
+                met_dict["Con_Mat_" + chan_select_string] = con_matrix
+                # Plotting flashy plot with all the fun stuff here
+                outfile = output_directory + configuration_string + 'together.png'
+                print('Saving comparison data image to file')
+                wid = 16
+                hgt = (comparison_plot_array.shape[0]/comparison_plot_array.shape[1]) * wid
+                neural_net_binary_plotter(chan_select_string, question_title, question_arry, con_matrix,
+                                          predicted_title, predicted_arr, comparison_plot_array, class_labels, clist,
+                                          cbounds, keystring, wid, hgt, outfile, met_dict)
                 del CNN
                 met_dict["Epochs"] = epoch_choice[epoch_used]
                 met_dict["Dropout"] = dropout_choice[dropout_used]
@@ -477,23 +536,6 @@ for filters_used in np.arange(0, len(filter_choice)):
                 met_dict["Channels"] = chan_select_string
                 metrics_dict_list.append(met_dict)
 
-np.save(save_directory+"metrics_list", metrics_dict_list)
+np.save(save_directory+"metrics_list_v2", metrics_dict_list)
 print('Completed Runs of CNN configurations')
 pdb.set_trace()
-
-''' This commented code is currently garbage - was using to figure out f1_score function input maybe it can be revived
-pred = CNN.model.predict(channel_1_test)
-arr = pred[0, :, :, 0]
-round_predicts = int(pred.round())
-round_predicts = np.reshape(round_predicts, (1, np.prod(round_predicts[:].shape)))
-round_predicts_mask = np.where(round_predicts == 1, 1, 0)
-full_Yt = full_Yt.round()
-full_Yt = np.reshape(full_Yt, (1, np.prod(full_Yt[:].shape)))
-full_Yt_mask = np.where(full_Yt == 1, 1, 0)
-pdb.set_trace()
-scores = f1_score(full_Yt_mask, round_predicts_mask, average='binary', pos_label=1)
-# pdb.set_trace()
-# pred = np.squeeze(pred)
-arr = np.argmax(pred, axis=2)
-arr = arr.astype(int)
-'''
