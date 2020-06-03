@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Created on Mon Apr  6 08:35:13 2020
 @author: Daniel Rusinek

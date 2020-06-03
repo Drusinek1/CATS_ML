@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue May 12 12:10:46 2020
 
@@ -18,7 +17,6 @@ nchans = 12
 nbins = 480
 bg_st_bin = 400
 bg_ed_bin = 480
-
 
 def remove_background_radiation(img):
 
