@@ -3,6 +3,9 @@
 Created on Tue May 12 12:10:46 2020
 
 @author: drusinek
+
+
+This script contains several functions for manipulating L0 CATS data
 """
 import read_routines
 import numpy as np
@@ -25,8 +28,10 @@ def remove_background_radiation(img):
     # Take the mean in the vertical, bins, dimension, thereby
     # creating an array that is shape (records, chans). This array
     # will be the solar background signal in each channel for each record.
+
     pdb.set_trace()
     bg = np.mean(bg_reg_subset, axis=2)  # axis 0 is chans, axis 1 is bins, axis 2 is profiles
+
     # Create a 3D array of background to avoid looping. This 3D array's values will ONLY vary
     # with channel and record, NOT with bin. Shape will be (bin, records, chans)
     bg3D = np.tile(bg, (480, 1, 1))
@@ -41,28 +46,19 @@ def remove_background_radiation(img):
 
     return img
 
-
-def add_padding(A, target_width=2048):   
-    print(A.shape)
-    A_width = A.shape[0]
-    A_height = A.shape[1]
-    pads_to_add = np.abs(target_width - A.shape[0])
-    padding = np.zeros((pads_to_add, A_height))
-    A = np.append(A, padding, axis=1)
-    pdb.set_trace()
-    
-    
+  
 def drop(raw_l0_array):
     """
-
     Parameters
     ----------
     A : ndarray
         numpy array of raw data.
+
     Returns
     -------
     A : ndarray
         data with flagged profiles removed
+
     """
     # Function updated on 5/27/2020 by Andrew Kupchock to change logic for appropriate removal of profiles
     print('Maximum value before is ', raw_l0_array.max())
@@ -82,15 +78,18 @@ def drop(raw_l0_array):
     # tmp = np.delete(tmp, idxs, axis=2)
     return raw_l0_array
 
-
+    
 def avg_profs(X):
+
     """
-    This function averages together every 14 profiles of
+    This function averages together every 14 profiles of 
     X and returns the resulting ndarray
+
     Parameters
     ----------
     X : ndarray
         Photon count array.
+
     Returns
     -------
     combined : ndarray
@@ -102,8 +101,24 @@ def avg_profs(X):
     split_constant = width // 14
     print('Dropping ', np.mod(width, 14), ' records when taking the average of 14')
     split_X = np.array_split(X, split_constant, axis=0)
+
+    holder = []
+    
+    #Average together each chunk and append onto holder
+    for chunk in split_X:
+        n_chunk = np.average(chunk, axis=0)
+        holder.append(n_chunk)
+    
+    #Combine all arrays in holder into a numpy array
+    combined = np.stack(holder, axis=0)
+
+    return combined
+    
+
+
     tmp = []
     for group in split_X:
         tmp_group = np.average(group, axis=0)
         tmp.append(tmp_group)
     return np.array(tmp)
+
