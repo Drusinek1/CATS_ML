@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Thu Mar 12 15:44:17 2020
 
 @author: Dani
+
+Updated by Andrew Kupchock to change naming convention for classes to CaMaL style
+Second Binary is corrected based on example
+
 """
 import tensorflow as tf
-import numpy as np
-import pdb
 
 """
 This function will initialize a unet model
