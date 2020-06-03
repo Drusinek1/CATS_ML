@@ -180,6 +180,32 @@ def export_eval_metrics(eval_metrics, sample_number):
     
     return None
 
+
+def export_eval_metrics(eval_metrics, sample_number):
+    """
+    This function calculates a confusion matrix for the inputed 
+    predicted and actual arrays, plots the confusion matrix and outputs 
+    accuracy metrics.
+    
+    Parameters
+    ----------
+    eval_metrics : dictionary
+        a dictionary containing eval metrics
+    sample_number : int
+        number of the sample that correspond to the inputed eval_metrics
+
+    Returns
+    -------
+    None
+    """
+
+    with open('eval.csv', 'w', newline="") as csv_file:  
+        writer = csv.writer(csv_file)
+        for key, value in eval_metrics.items():
+            writer.writerow([key, value])
+    
+    return None
+
 # """
 # Formatting Input Training Data
 # """
