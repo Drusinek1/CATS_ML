@@ -1,10 +1,8 @@
 """
 Created on Mon Apr  6 08:35:13 2020
 @author: Daniel Rusinek
-
 This code imports pre-made training and testing data,and runs it through a
 binary classification convolutional neural network.
-
 Created on Mon Apr  6 08:35:13 2020
 @author: drusi
 """
@@ -136,8 +134,14 @@ def get_eval_metrics(pred, actual, classes, image_export_path):
     return confusion_matrix, metrics_dict
 
 
+
+
 start = datetime.now()
 
+
+"""
+loading .npy files created by make_training_set.py
+"""
 # loading .npy files created by make_training_set.py
 X = np.load('questions.npy', allow_pickle=True)
 # X = np.transpose(X, (0,3,2,1))
@@ -146,7 +150,6 @@ Y = np.load('answers.npy', allow_pickle=True)
 Xt = np.load('test_questions.npy', allow_pickle=True)
 
 Yt = np.load('test_answers.npy', allow_pickle=True)
-
 """
 Formatting Input Training Data
 """
@@ -164,40 +167,20 @@ CNN = neural_nets.UNet_binary(model_shape, features=1, filters=16)
 # Train the model
 history = CNN.model.fit(X, Y, epochs=5, verbose=1, validation_split=0.3, batch_size=1)
 
-Yt = np.squeeze(Yt)
-
 CNN.model.save('my_model.h5')
 
 CNN = tf.keras.models.load_model('my_model.h5')
 
-#predict on test X
+# predict on test X
 pred = CNN.predict(Xt)
 pred = np.squeeze(pred)
 
-#Set classification threshold
+# Set classification threshold
 pred[pred > 0.18] = 1
-pred[pred < 0.18] = 0 
+pred[pred < 0.18] = 0
 pred = pred.astype(int)
 
-
-# """
-# Calculate Recall, Precision, and F1 Score
-# """
-
-# #True Positives
-TP = np.count_nonzero(pred * Yt)
-
-
-# #True Negatives 
-TN = np.count_nonzero((pred - 1) * (Yt - 1))
-
-# #False Positives
-FP = np.count_nonzero(pred * (Yt - 1))
-
-# #False Negatives
-
-#UNet will expect this input shape for all training data
-model_shape = (512,1024,3)
+model_shape = (512, 1024, 3)
 
 CNN = neural_nets.UNet_binary(model_shape, features=1, filters=16)
 history = CNN.model.fit(X, Y, epochs=15, verbose=1, validation_split=0.3, batch_size=1)
@@ -234,27 +217,8 @@ print(time)
 
 pred = cv2.resize(pred, dsize=(512, 2048), interpolation=cv2.INTER_CUBIC)
 
+# pred = cv2.resize(pred, dsize=(512,2048), interpolation=cv2.INTER_CUBIC)
 
-plt.figure()
-training_loss = history.history['loss']
-test_loss = history.history['val_loss']
-
-epoch_count = range(1, len(training_loss) + 1)
-
-#Visualize prediciton 
-
-plt.figure()
-fig, ax = plt.subplots()
-
-ax.imshow(pred, aspect='auto')
-
-time = datetime.now() - start
-
-print(time)
-
-pred = cv2.resize(pred, dsize=(512,2048), interpolation=cv2.INTER_CUBIC)
-
-#pred = cv2.resize(pred, dsize=(512,2048), interpolation=cv2.INTER_CUBIC)
 
 plt.figure()
 training_loss = history.history['loss']
@@ -281,4 +245,3 @@ print(time)
 time = datetime.now() - start
 
 print(time)
-
