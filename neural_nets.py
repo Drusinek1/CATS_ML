@@ -11,6 +11,8 @@ Second Binary is corrected based on example
 import tensorflow as tf
 
 """
+<<<<<<< HEAD
+<<<<<<< HEAD
 This function will initialize a unet model
 input: 
     img: input image 
@@ -22,6 +24,12 @@ input:
     num_layers: number of convolutional layers at each level
     @type: int
     kernal_size: size of kernal
+=======
+Contains CNN architecture classes
+>>>>>>> master
+=======
+Contains CNN architecture classes
+>>>>>>> 3067feedba44af5197ca56491b2cb48fc3559689
     @type: list(int)
     
 """
