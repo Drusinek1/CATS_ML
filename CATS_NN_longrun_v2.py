@@ -393,7 +393,7 @@ print('At this point all of the data should be in the correct format to be used 
 # Filters are an input variable
 model_shape = (512, 256, 1)       # changed to 256 to match image sizes and dimensions to match their descriptors
 features = 1
-filter_choice = [4, 8, 16]         # [4, 16]
+filter_choice = [8, 16]         # [4, 16]
 dropout_choice = [0.1, 0.2, 0.3]              # [0.1, 0.2]
 epoch_choice = [1, 2, 3]                  # [1, 2]
 channel_selection = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (1, 1, 0)]
