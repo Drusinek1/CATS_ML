@@ -1,0 +1,7 @@
+__pycache__/
+questions_and_answers/
+output*
+*.npy
+*.log
+*~
+

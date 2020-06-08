@@ -26,9 +26,11 @@ from matplotlib import pyplot as plt
 from lidar import get_a_color_map
 
 # Location of where you would like the output to be located
-output_directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\Output_Files\\"
+#output_directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\Output_Files\\"
+output_directory = './output2/'
 # Location of where the questions, answers, test questions, and test answers are stored
-save_directory = "C:\\Users\\akupchoc.NDC\\PycharmProjects\\CATS_ML\\questions_and_answers\\"
+#save_directory = "C:\\Users\\akupchoc.NDC\\PycharmProjects\\CATS_ML\\questions_and_answers\\"
+save_directory = './questions_and_answers/'
 
 
 def image_2d_data_contcb(arr, cbmin, cbmax, wid, hgt, requested_title, outfile):
@@ -354,8 +356,8 @@ file_number_to_use = 0
 vertical_dimension_of_output = 500
 # Tuple which defines the start and stop limits for stitching images together
 image_subset = (0, int(test_image_key[file_number_to_use][1])-1)
-granule_to_plot = test_image_key[file_number_to_use][0].split('\\')[-1].split('.')[0] + \
-                  test_image_key[file_number_to_use][0].split('\\')[-1].split('.')[1]
+granule_to_plot = test_image_key[file_number_to_use][0].split('/')[-1].split('.')[0] + \
+                  test_image_key[file_number_to_use][0].split('/')[-1].split('.')[1]
 print('The Granule used to make these plots is ', granule_to_plot)
 # Move the number of samples to the first dimension
 full_X = np.transpose(X, [0, 1, 3, 2])
@@ -394,9 +396,9 @@ print('At this point all of the data should be in the correct format to be used 
 model_shape = (512, 256, 1)       # changed to 256 to match image sizes and dimensions to match their descriptors
 features = 1
 filter_choice = [8, 16]         # [4, 16]
-dropout_choice = [0.1, 0.2, 0.3]              # [0.1, 0.2]
-epoch_choice = [1, 2, 3]                  # [1, 2]
-channel_selection = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (1, 1, 0)]
+dropout_choice = [0.1, 0.2, 0.3]#[0.1, 0.2, 0.3]              # [0.1, 0.2]
+epoch_choice = [2, 3]                  # [1, 2]
+channel_selection = [(1,1,0), (1,1,1)]#[(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (1, 1, 0)]
 # ***************************************************** #
 try:
     # if list exists already just append to the list
@@ -407,7 +409,6 @@ except:
     metrics_dict_list = []      # List used to retain the dictionary for each run
 class_labels = ['Layer', 'No Layer']
 # Put for loops in here:
-
 for filters_used in np.arange(0, len(filter_choice)):
     for dropout_used in np.arange(0, len(dropout_choice)):
         for epoch_used in np.arange(0, len(epoch_choice)):
@@ -538,4 +539,3 @@ for filters_used in np.arange(0, len(filter_choice)):
 
 np.save(save_directory+"metrics_list_v2", metrics_dict_list)
 print('Completed Runs of CNN configurations')
-pdb.set_trace()

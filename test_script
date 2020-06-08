@@ -1,0 +1,8 @@
+#! /bin/tcsh
+#
+# Shell script to make it easier to run Neural Network code in the
+# background via cronjob.
+
+echo "In the script..."
+/home/selmer/anaconda3/bin/python3 /Data/Code/Dev/ML/CATS_ML/CATS_NN_longrun_v2.py
+

@@ -247,16 +247,24 @@ def add_pad_to_vertical(small_array, target_height):
 
 
 # ********** Beginning of Main ********** #
-# directory = "C:\\Users\\drusi\\OneDrive\\Desktop\\CPL\\train"
-# directory = "C:\\Users\\pselmer\\Documents\\CATS_ISS\\Data_samples\\NN_train\\"
-directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\NN_train\\test_records\\"
-save_directory = "C:\\Users\\akupchoc.NDC\\PycharmProjects\\CATS_ML\\questions_and_answers\\"
+input_file_directory = '/Data5/selmer/L0/Mode7.2/2017/oct/'
+target_file_directory = '/Data5/spp/L2/prof/V3-00/'
+save_directory = "./questions_and_answers/"
 # *********** UPDATE DIRECTORIES ABOVE **************** #
 # Get fixed (L2) and original (L0) vertical bin frames
 # Updated to array instead of file read on 5/27/2020
 L0_bin_alt = np.linspace(27908.3, -9443.19, 480)
+L0_file_list = glob.glob('{}/*D*2017-10-0*.dat'.format(input_file_directory))
+L2_file_list = glob.glob('{}/*D*2017-10-0*.hdf5'.format(target_file_directory))
+# NOTE: 1:24 training, 24:28 test
+L0_file_list = L0_file_list[24:28] # manually crop file lists if pattern matching not enough
+L2_file_list = L2_file_list[24:28]
+# *********** USE UNIX-STYLE PATTERN MATCHING TO SPECIFY FILES ABOVE **************** #
+# Check for 1-to-1 correspondance between L0 and L2 files
+if len(L0_file_list) != len(L2_file_list):
+    print('Check out why there are a different # of L0 and L2 files.')
+    pdb.set_trace()
 # Look at the top bin across all L2 files. It shouldn't change much.
-L2_file_list = glob.glob('{}/*.hdf5'.format(directory))
 for L2_file in L2_file_list:
     hdf5 = h5py.File(L2_file, 'r')
     try:
@@ -285,7 +293,7 @@ print('Only use data between vertical bins {0:d} and {1:d}'.format(top_bin, bot_
 image_key = []
 x_lst = []
 nn = 1
-for input_file in glob.glob('{}/*.dat'.format(directory)):
+for input_file in L0_file_list:
     print("Reading {} {}...".format(nn, input_file))
     l0_img = get_input(input_file, L2_bin_alt, L0_bin_alt, top_bin, bot_bin)
     # Adds to a list the file name and the number of images taken from that file
@@ -306,7 +314,7 @@ print("Questions completed, moving onto Answers!")
 nn = 1
 
 t_lst = []
-for target_file in glob.glob('{}/*.hdf5'.format(directory)):
+for target_file in L2_file_list:
     print("Reading {} {}...".format(nn, target_file))
     l2_img = get_targets(target_file, top_bin, bot_bin)
     for image_sub in np.arange(0, len(l2_img)):
