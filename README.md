@@ -18,3 +18,6 @@ Be sure to change name of directory on line 252 to the location of the L0 and L2
 on line 253. Code must be run twice, once for training data and once for testing data. For each run be sure to change
 name of output files on line 302, 303 and 323.
 
+CATS_NN_longrun_v2.py is current updated neural network code. Ensure that model_shape on line 394 matches shape of each sample 
+in training set created using make_training_set.py
+
