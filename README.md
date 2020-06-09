@@ -4,6 +4,13 @@
 This repository contains code for preprocessing CATS data and training a convolutional neural network to 
 classify cloud and aerosol layers.
 
+
+## System Requirements
+- Python 3.X
+- Numpy 1.14 or later
+- Runs 64 bit windows
+
+
 ##Notes:
 [6/9/2020]
 As of today, code to format L0 and L2 data for training as .npy files is located in make_training_set.py.  
