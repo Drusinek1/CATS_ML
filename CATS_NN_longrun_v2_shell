@@ -4,6 +4,6 @@
 # background via cronjob.
 
 echo "In the script..."
-cd /Data/Code/Dev/drusinek/CATS_ML/
-/home/selmer/anaconda3/bin/python3 /Data/Code/Dev/drusinek/CATS_ML/CATS_NN_longrun_v2.py >>& /Data/Code/Dev/drusinek/CATS_ML/longrun_v2.log
+cd /Data/Code/Dev/ML/CATS_ML/
+/home/selmer/anaconda3/bin/python3 /Data/Code/Dev/ML/CATS_ML/CATS_NN_longrun_v2.py >>& /Data/Code/Dev/ML/CATS_ML/longrun_v2.log
 
