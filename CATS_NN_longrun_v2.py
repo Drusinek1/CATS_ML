@@ -24,6 +24,7 @@ import pdb
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from lidar import get_a_color_map
+import pandas as pd
 
 # Location of where you would like the output to be located
 #output_directory = "C:\\Users\\akupchoc.NDC\\Documents\\Work\\Jetson TX2\\CATS_ML\\Output_Files\\"
@@ -399,6 +400,7 @@ filter_choice = [8, 16]         # [4, 16]
 dropout_choice = [0.1, 0.2, 0.3]#[0.1, 0.2, 0.3]              # [0.1, 0.2]
 epoch_choice = [2, 3]                  # [1, 2]
 channel_selection = [(1,1,0), (1,1,1)]#[(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (1, 1, 0)]
+metrics_df = pd.DataFrame()
 # ***************************************************** #
 try:
     # if list exists already just append to the list
@@ -536,6 +538,8 @@ for filters_used in np.arange(0, len(filter_choice)):
                 met_dict["Filters"] = filter_choice[filters_used]
                 met_dict["Channels"] = chan_select_string
                 metrics_dict_list.append(met_dict)
+                metrics_df = metrics_df.append(metric_dict, ignore_index=True)
 
+metrics_df.to_csv(output_directory+'CNN_performance.csv', sep=',', index=False)
 np.save(save_directory+"metrics_list_v2", metrics_dict_list)
 print('Completed Runs of CNN configurations')
